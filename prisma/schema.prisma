@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String   @map("password_hash")
+  systemRole   String   @map("system_role") // admin, manager, crew
+  emailEnabled Boolean  @default(true) @map("email_enabled")
+  smsEnabled   Boolean  @default(false) @map("sms_enabled")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  assignedTasks      Task[]              @relation("AssignedTasks")
+  createdEvents      Event[]             @relation("CreatedEvents")
+  taskComments       TaskComment[]
+  taskNotifications  TaskNotification[]
+  eventAssignments   EventAssignment[]
+  defaultTaskTemplates TaskTemplate[]    @relation("DefaultAssignee")
+
+  @@map("users")
+}
+
+model Venue {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  addressLine1 String? @map("address_line1")
+  addressLine2 String? @map("address_line2")
+  city        String?
+  state       String?
+  postalCode  String?  @map("postal_code")
+  country     String?
+  isHomeVenue Boolean  @default(false) @map("is_home_venue")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  events Event[]
+
+  @@map("venues")
+}
+
+model EventTemplate {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  taskTemplates TaskTemplate[]
+  events        Event[]
+
+  @@map("event_templates")
+}
+
+model TaskTemplate {
+  id               String   @id @default(uuid()) @db.Uuid
+  eventTemplateId  String   @map("event_template_id") @db.Uuid
+  phase            String
+  name             String
+  description      String?
+  sortOrder        Int      @default(0) @map("sort_order")
+  dueOffsetDays    Int      @map("due_offset_days")
+  startOffsetDays  Int?     @map("start_offset_days")
+  defaultRole      String?  @map("default_role")
+  defaultAssigneeUserId String? @map("default_assignee_user_id") @db.Uuid
+  reminderEmail    Boolean  @default(true) @map("reminder_email")
+  reminderSms      Boolean  @default(false) @map("reminder_sms")
+  reminderDaysBefore Int    @default(1) @map("reminder_days_before")
+  reminderDayOf    Boolean  @default(true) @map("reminder_day_of")
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  eventTemplate    EventTemplate @relation(fields: [eventTemplateId], references: [id], onDelete: Cascade)
+  defaultAssignee  User?         @relation("DefaultAssignee", fields: [defaultAssigneeUserId], references: [id], onDelete: SetNull)
+  conditions       TaskTemplateCondition[]
+  tasks            Task[]
+
+  @@map("task_templates")
+}
+
+model TaskTemplateCondition {
+  id             String   @id @default(uuid()) @db.Uuid
+  taskTemplateId String   @map("task_template_id") @db.Uuid
+  fieldName      String   @map("field_name")
+  operator       String   @default("eq") // eq only for v1
+  valueText      String   @map("value_text")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  taskTemplate TaskTemplate @relation(fields: [taskTemplateId], references: [id], onDelete: Cascade)
+
+  @@map("task_template_conditions")
+}
+
+model Event {
+  id               String   @id @default(uuid()) @db.Uuid
+  title            String
+  description      String?
+  eventTemplateId  String   @map("event_template_id") @db.Uuid
+  venueId          String?  @map("venue_id") @db.Uuid
+  eventDate        DateTime @map("event_date") @db.Date
+  startTime        DateTime? @map("start_time") @db.Timestamptz
+  endTime          DateTime? @map("end_time") @db.Timestamptz
+  isHomeVenue      Boolean  @default(false) @map("is_home_venue")
+  transportRequired Boolean @default(false) @map("transport_required")
+  coHosted         Boolean  @default(false) @map("co_hosted")
+  merchPresent     Boolean  @default(false) @map("merch_present")
+  createdByUserId  String   @map("created_by_user_id") @db.Uuid
+  status           String   @default("planning") // planning, active, completed, cancelled
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  eventTemplate    EventTemplate @relation(fields: [eventTemplateId], references: [id])
+  venue            Venue?        @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  createdBy        User          @relation("CreatedEvents", fields: [createdByUserId], references: [id])
+  tasks            Task[]
+  eventAssignments EventAssignment[]
+
+  @@map("events")
+}
+
+model Task {
+  id              String    @id @default(uuid()) @db.Uuid
+  eventId         String    @map("event_id") @db.Uuid
+  taskTemplateId  String?   @map("task_template_id") @db.Uuid
+  phase           String
+  name            String
+  description     String?
+  sortOrder       Int       @default(0) @map("sort_order")
+  assignedRole    String?   @map("assigned_role")
+  assignedUserId  String?   @map("assigned_user_id") @db.Uuid
+  startDate       DateTime? @map("start_date") @db.Date
+  dueDate         DateTime  @map("due_date") @db.Date
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz
+  status          String    @default("not_started") // not_started, in_progress, blocked, done, skipped
+  isGenerated     Boolean   @default(true) @map("is_generated")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  event           Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  taskTemplate    TaskTemplate? @relation(fields: [taskTemplateId], references: [id], onDelete: SetNull)
+  assignedUser    User?        @relation("AssignedTasks", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  comments        TaskComment[]
+  notifications   TaskNotification[]
+
+  @@map("tasks")
+}
+
+model TaskComment {
+  id           String   @id @default(uuid()) @db.Uuid
+  taskId       String   @map("task_id") @db.Uuid
+  authorUserId String   @map("author_user_id") @db.Uuid
+  body         String
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorUserId], references: [id])
+
+  @@map("task_comments")
+}
+
+model TaskNotification {
+  id               String    @id @default(uuid()) @db.Uuid
+  taskId           String    @map("task_id") @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  channel          String    // email, sms
+  notificationType String    @map("notification_type") // assignment, due_soon, due_today, overdue
+  scheduledFor     DateTime  @map("scheduled_for") @db.Timestamptz
+  sentAt           DateTime? @map("sent_at") @db.Timestamptz
+  status           String    @default("pending") // pending, sent, failed, cancelled
+  errorMessage     String?   @map("error_message")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("task_notifications")
+}
+
+model EventAssignment {
+  id        String   @id @default(uuid()) @db.Uuid
+  eventId   String   @map("event_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  eventRole String   @map("event_role")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId, eventRole])
+  @@map("event_assignments")
+}
