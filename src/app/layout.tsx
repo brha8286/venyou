@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Subculture Planning",
-  description: "Internal event operations planning tool for Subculture Audio",
+  title: "venyou",
+  description: "Internal event operations tool for (SCA)",
 };
 
 export default function RootLayout({

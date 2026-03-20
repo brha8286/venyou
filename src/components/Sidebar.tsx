@@ -93,8 +93,8 @@ export default function Sidebar({ user }: SidebarProps) {
       >
         {/* Logo */}
         <div data-ui="sidebar-brand" className="px-6 py-5 border-b border-zinc-800">
-          <h1 className="text-xl font-bold tracking-tight">
-            <span className="text-amber-500">SC</span> Planning
+          <h1 className="text-xl font-bold tracking-tight text-amber-500">
+            venyou
           </h1>
         </div>
 

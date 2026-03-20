@@ -40,11 +40,11 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Branding */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">
-            <span className="text-amber-500">SC</span> Planning
+          <h1 className="text-3xl font-bold tracking-tight text-amber-500">
+            venyou
           </h1>
           <p className="mt-2 text-sm text-zinc-500">
-            Subculture Audio event operations
+            (SCA) event operations
           </p>
         </div>
 
