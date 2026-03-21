@@ -341,6 +341,9 @@ export default function NewEventPage() {
                       {roleDef.required && (
                         <span className="text-amber-500">*</span>
                       )}
+                      {"hint" in roleDef && roleDef.hint && (
+                        <span className="text-xs text-zinc-500 ml-1">({roleDef.hint})</span>
+                      )}
                     </label>
                     <select
                       value={idx >= 0 ? roleAssignments[idx].userId : ""}

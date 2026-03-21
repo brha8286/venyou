@@ -3,7 +3,7 @@ export const EVENT_ROLES = [
   { value: "technical_lead", label: "Technical Lead (A1)", required: true, maxAssignees: 1 },
   { value: "a2", label: "A2", required: false, maxAssignees: 1 },
   { value: "marketing_lead", label: "Marketing Lead", required: true, maxAssignees: 1 },
-  { value: "driver", label: "Transportation Lead", required: false, maxAssignees: 1 },
+  { value: "driver", label: "Transportation Lead", required: false, maxAssignees: 1, hint: "Event Manager if unassigned" },
 ] as const;
 
 export type EventRoleValue = typeof EVENT_ROLES[number]["value"];
