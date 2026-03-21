@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { canManageVenues } from "@/lib/permissions";
 
 export async function GET() {
   const session = await auth();
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (session.user.systemRole !== "admin") {
+  if (!canManageVenues(session.user.systemRole)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

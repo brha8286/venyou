@@ -12,6 +12,14 @@ export function canManageUsers(role: string): boolean {
   return role === "admin";
 }
 
+export function canManageVenues(role: string): boolean {
+  return role === "admin" || role === "manager";
+}
+
+export function canManageContacts(role: string): boolean {
+  return role === "admin" || role === "manager";
+}
+
 export function canCreateEvent(role: string): boolean {
   return role === "admin" || role === "manager";
 }

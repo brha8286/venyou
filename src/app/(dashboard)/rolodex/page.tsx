@@ -60,7 +60,7 @@ const TABS: { key: ContactType | "all"; label: string }[] = [
 
 export default function RolodexPage() {
   const { data: session } = useSession();
-  const isAdmin = session?.user?.systemRole === "admin";
+  const isAdmin = session?.user?.systemRole === "admin" || session?.user?.systemRole === "manager";
 
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);

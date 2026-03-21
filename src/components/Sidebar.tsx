@@ -15,7 +15,7 @@ interface SidebarProps {
 interface NavItem {
   label: string;
   href: string;
-  adminOnly?: boolean;
+  minRole?: "manager" | "admin";
 }
 
 const navItems: NavItem[] = [
@@ -24,25 +24,28 @@ const navItems: NavItem[] = [
   { label: "Tasks", href: "/tasks" },
   { label: "Calendar", href: "/calendar" },
   { label: "Board", href: "/board" },
-  { label: "Rolodex", href: "/rolodex", adminOnly: true },
-  { label: "Templates", href: "/admin/templates", adminOnly: true },
-  { label: "Users", href: "/admin/users", adminOnly: true },
-  { label: "Venues", href: "/admin/venues", adminOnly: true },
+  { label: "Rolodex", href: "/rolodex", minRole: "manager" },
+  { label: "Venues", href: "/admin/venues", minRole: "manager" },
+  { label: "Templates", href: "/admin/templates", minRole: "admin" },
+  { label: "Users", href: "/admin/users", minRole: "admin" },
 ];
 
 export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAdmin = user.role === "admin";
+  const isManager = user.role === "manager" || isAdmin;
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
 
-  const filteredItems = navItems.filter(
-    (item) => !item.adminOnly || isAdmin
-  );
+  const filteredItems = navItems.filter((item) => {
+    if (item.minRole === "admin") return isAdmin;
+    if (item.minRole === "manager") return isManager;
+    return true;
+  });
 
   return (
     <>

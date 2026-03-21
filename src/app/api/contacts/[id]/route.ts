@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { canManageContacts } from "@/lib/permissions";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!session?.user || session.user.systemRole !== "admin") {
+  if (!session?.user || !canManageContacts(session.user.systemRole)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -31,7 +32,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!session?.user || session.user.systemRole !== "admin") {
+  if (!session?.user || !canManageContacts(session.user.systemRole)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
