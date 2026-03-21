@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import StatusBadge from "@/components/StatusBadge";
 import PhaseBadge from "@/components/PhaseBadge";
@@ -57,9 +58,11 @@ function formatDate(dateStr: string): string {
 }
 
 export default function TasksPage() {
+  const { data: session } = useSession();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [assigneeFilter, setAssigneeFilter] = useState<"me" | "all">("me");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [comments, setComments] = useState<Record<string, Comment[]>>({});
   const [commentLoading, setCommentLoading] = useState<string | null>(null);
@@ -74,6 +77,9 @@ export default function TasksPage() {
       if (activeTab === "today") params.set("upcoming", "0");
       if (activeTab === "week") params.set("upcoming", "7");
       if (activeTab === "completed") params.set("status", "done");
+      if (assigneeFilter === "me" && session?.user?.id) {
+        params.set("assignedUserId", session.user.id);
+      }
 
       const res = await fetch(`/api/tasks?${params}`);
       if (res.ok) {
@@ -83,7 +89,7 @@ export default function TasksPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, assigneeFilter, session?.user?.id]);
 
   useEffect(() => {
     fetchTasks();
@@ -156,7 +162,23 @@ export default function TasksPage() {
 
   return (
     <div className="space-y-6" data-ui="my-tasks-page">
-      <h1 className="text-2xl font-bold text-zinc-100">My Tasks</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-zinc-100">Tasks</h1>
+        <div className="flex rounded-md overflow-hidden border border-zinc-700 text-sm" data-ui="assignee-filter-toggle">
+          <button
+            onClick={() => setAssigneeFilter("me")}
+            className={`px-4 py-1.5 font-medium transition-colors ${assigneeFilter === "me" ? "bg-amber-500 text-zinc-950" : "bg-zinc-800 text-zinc-400 hover:text-zinc-100"}`}
+          >
+            Me
+          </button>
+          <button
+            onClick={() => setAssigneeFilter("all")}
+            className={`px-4 py-1.5 font-medium transition-colors ${assigneeFilter === "all" ? "bg-amber-500 text-zinc-950" : "bg-zinc-800 text-zinc-400 hover:text-zinc-100"}`}
+          >
+            All
+          </button>
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-zinc-900 p-1 rounded-lg overflow-x-auto" data-ui="tasks-filter-tabs">

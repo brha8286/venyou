@@ -21,7 +21,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/" },
   { label: "Events", href: "/events" },
-  { label: "My Tasks", href: "/tasks" },
+  { label: "Tasks", href: "/tasks" },
   { label: "Calendar", href: "/calendar" },
   { label: "Board", href: "/board" },
   { label: "Templates", href: "/admin/templates", adminOnly: true },
