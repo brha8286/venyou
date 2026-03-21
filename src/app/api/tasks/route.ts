@@ -57,3 +57,38 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(tasks);
 }
+
+export async function POST(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const role = session.user.systemRole;
+  if (role !== "admin" && role !== "manager") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const { eventId, name, phase, dueDate, assignedUserId, description } = body;
+
+  if (!eventId || !name || !phase || !dueDate) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  const task = await prisma.task.create({
+    data: {
+      eventId,
+      name,
+      phase,
+      dueDate: new Date(dueDate),
+      assignedUserId: assignedUserId || null,
+      description: description || null,
+      status: "not_started",
+      isGenerated: false,
+      sortOrder: 999,
+    },
+  });
+
+  return NextResponse.json(task, { status: 201 });
+}
