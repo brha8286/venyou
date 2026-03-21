@@ -80,15 +80,26 @@ const eventStatusClasses: Record<string, string> = {
 };
 
 const PHASE_ORDER = [
-  "Talent",
-  "Promotion",
-  "Production",
-  "Transportation",
-  "Crew",
-  "Event Day",
-  "Strike",
-  "Post-Event",
+  "talent",
+  "promotion",
+  "production",
+  "crew",
+  "transportation",
+  "event_day",
+  "strike",
+  "post_event",
 ];
+
+const PHASE_LABELS: Record<string, string> = {
+  talent: "Talent",
+  promotion: "Promotion",
+  production: "Production",
+  crew: "Crew",
+  transportation: "Transportation",
+  event_day: "Event Day",
+  strike: "Strike",
+  post_event: "Post-Event",
+};
 
 function formatDate(dateStr: string) {
   try {
@@ -131,7 +142,7 @@ export default function EventDetailPage() {
   const [showAddTask, setShowAddTask] = useState(false);
   const [addTaskForm, setAddTaskForm] = useState({
     name: "",
-    phase: "Production",
+    phase: "production",
     dueDate: "",
     assignedUserId: "",
     description: "",
@@ -454,7 +465,7 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
 
       setAddTaskForm({
         name: "",
-        phase: "Production",
+        phase: "production",
         dueDate: "",
         assignedUserId: "",
         description: "",
@@ -836,7 +847,7 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                 >
                   {PHASE_ORDER.map((p) => (
                     <option key={p} value={p}>
-                      {p}
+                      {PHASE_LABELS[p] ?? p}
                     </option>
                   ))}
                 </select>
@@ -1175,7 +1186,7 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                       onChange={() => toggleExportPhase(phase)}
                       className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-amber-500 focus:ring-amber-500/50 focus:ring-offset-0"
                     />
-                    <span className="text-sm text-zinc-200 flex-1">{phase}</span>
+                    <span className="text-sm text-zinc-200 flex-1">{PHASE_LABELS[phase] ?? phase}</span>
                     <span className="text-xs text-zinc-500">{count} task{count !== 1 ? "s" : ""}</span>
                   </label>
                 );
