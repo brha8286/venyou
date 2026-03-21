@@ -117,6 +117,7 @@ model Event {
   coHosted         Boolean  @default(false) @map("co_hosted")
   merchPresent     Boolean  @default(false) @map("merch_present")
   createdByUserId  String   @map("created_by_user_id") @db.Uuid
+  clientId         String?  @map("client_id") @db.Uuid
   status           String   @default("planning") // planning, active, completed, cancelled
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
@@ -124,6 +125,7 @@ model Event {
   eventTemplate    EventTemplate @relation(fields: [eventTemplateId], references: [id])
   venue            Venue?        @relation(fields: [venueId], references: [id], onDelete: SetNull)
   createdBy        User          @relation("CreatedEvents", fields: [createdByUserId], references: [id])
+  client           Contact?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
   tasks            Task[]
   eventAssignments EventAssignment[]
 
@@ -200,6 +202,8 @@ model Contact {
   notes     String?
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  events Event[]
 
   @@map("contacts")
 }

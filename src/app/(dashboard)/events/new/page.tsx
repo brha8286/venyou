@@ -24,11 +24,18 @@ interface User {
   name: string;
 }
 
+interface Client {
+  id: string;
+  name: string;
+  pocName: string | null;
+}
+
 export default function NewEventPage() {
   const router = useRouter();
   const [templates, setTemplates] = useState<EventTemplate[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +50,7 @@ export default function NewEventPage() {
     startTime: "",
     endTime: "",
     venueId: "",
+    clientId: "",
     isHomeVenue: false,
     transportRequired: false,
     coHosted: false,
@@ -53,16 +61,21 @@ export default function NewEventPage() {
   useEffect(() => {
     async function fetchOptions() {
       try {
-        const [tplRes, venueRes, usersRes] = await Promise.all([
+        const [tplRes, venueRes, usersRes, contactsRes] = await Promise.all([
           fetch("/api/event-templates"),
           fetch("/api/venues"),
           fetch("/api/users"),
+          fetch("/api/contacts"),
         ]);
         if (!tplRes.ok || !venueRes.ok || !usersRes.ok)
           throw new Error("Failed to load form data");
         setTemplates(await tplRes.json());
         setVenues(await venueRes.json());
         setUsers(await usersRes.json());
+        if (contactsRes.ok) {
+          const all = await contactsRes.json();
+          setClients(all.filter((c: { type: string }) => c.type === "client"));
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
@@ -103,6 +116,7 @@ export default function NewEventPage() {
       };
 
       if (form.venueId) body.venueId = form.venueId;
+      if (form.clientId) body.clientId = form.clientId;
       if (form.description) body.description = form.description;
       if (form.startTime) {
         body.startTime = `${form.eventDate}T${form.startTime}:00`;
@@ -294,6 +308,28 @@ export default function NewEventPage() {
                   {v.name}
                   {v.city ? `, ${v.city}` : ""}
                   {v.isHomeVenue ? " (Home)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Client */}
+          <div>
+            <label htmlFor="clientId" className="block text-sm font-medium text-zinc-300 mb-1.5">
+              Client
+            </label>
+            <select
+              id="clientId"
+              name="clientId"
+              value={form.clientId}
+              onChange={handleChange}
+              data-ui="event-client-select"
+              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+            >
+              <option value="">No client</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}{c.pocName ? ` — ${c.pocName}` : ""}
                 </option>
               ))}
             </select>

@@ -29,6 +29,7 @@ export async function GET(
       eventAssignments: {
         include: { user: { select: { id: true, name: true } } },
       },
+      client: { select: { id: true, name: true, pocName: true, pocPhone: true, pocEmail: true } },
     },
   });
 
@@ -65,6 +66,7 @@ export async function PATCH(
     "title",
     "description",
     "venueId",
+    "clientId",
     "status",
     "isHomeVenue",
     "transportRequired",

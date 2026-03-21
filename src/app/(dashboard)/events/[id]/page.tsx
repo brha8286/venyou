@@ -54,6 +54,7 @@ interface EventData {
   merchPresent: boolean;
   venue: { id: string; name: string } | null;
   eventTemplate: { id: string; name: string } | null;
+  client: { id: string; name: string; pocName: string | null; pocPhone: string | null; pocEmail: string | null } | null;
   tasks: Task[];
   eventAssignments: Array<{
     id: string;
@@ -132,6 +133,9 @@ export default function EventDetailPage() {
   const { data: session } = useSession();
   const [event, setEvent] = useState<EventData | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [clients, setClients] = useState<Array<{ id: string; name: string; pocName: string | null }>>([]);
+  const [editingClient, setEditingClient] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
@@ -187,6 +191,21 @@ export default function EventDetailPage() {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    async function fetchClients() {
+      try {
+        const res = await fetch("/api/contacts");
+        if (res.ok) {
+          const all = await res.json();
+          setClients(all.filter((c: { type: string }) => c.type === "client"));
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+    fetchClients();
+  }, []);
+
   async function handleStatusChange(taskId: string, status: string) {
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
@@ -212,6 +231,18 @@ export default function EventDetailPage() {
       await fetchEvent();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to update assignee");
+    }
+  }
+
+  async function saveClient() {
+    const res = await fetch(`/api/events/${eventId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientId: selectedClientId || null }),
+    });
+    if (res.ok) {
+      await fetchEvent();
+      setEditingClient(false);
     }
   }
 
@@ -695,6 +726,66 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
           ))}
         </div>
       )}
+
+      {/* Client */}
+      <div data-ui="client-section" className="bg-zinc-800 rounded-lg border border-zinc-700 p-4 mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-zinc-100 uppercase tracking-wide">Client</h2>
+          {isAdminOrManager && !editingClient && (
+            <button
+              onClick={() => { setSelectedClientId(event.client?.id ?? ""); setEditingClient(true); }}
+              className="text-xs text-amber-500 hover:text-amber-400 font-medium transition-colors"
+            >
+              {event.client ? "Change" : "Assign"}
+            </button>
+          )}
+          {editingClient && (
+            <div className="flex items-center gap-2">
+              <button onClick={saveClient} className="px-3 py-1 text-xs font-medium bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded transition-colors">Save</button>
+              <button onClick={() => setEditingClient(false)} className="px-3 py-1 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors">Cancel</button>
+            </div>
+          )}
+        </div>
+        {editingClient ? (
+          <select
+            value={selectedClientId}
+            onChange={(e) => setSelectedClientId(e.target.value)}
+            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          >
+            <option value="">No client</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}{c.pocName ? ` — ${c.pocName}` : ""}</option>
+            ))}
+          </select>
+        ) : event.client ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+            <div className="flex items-center gap-2 py-1">
+              <span className="text-xs font-medium text-amber-500 min-w-[130px] shrink-0">Business</span>
+              <span className="text-sm text-zinc-100">{event.client.name}</span>
+            </div>
+            {event.client.pocName && (
+              <div className="flex items-center gap-2 py-1">
+                <span className="text-xs font-medium text-amber-500 min-w-[130px] shrink-0">POC</span>
+                <span className="text-sm text-zinc-100">{event.client.pocName}</span>
+              </div>
+            )}
+            {event.client.pocPhone && (
+              <div className="flex items-center gap-2 py-1">
+                <span className="text-xs font-medium text-amber-500 min-w-[130px] shrink-0">POC Phone</span>
+                <span className="text-sm text-zinc-100">{event.client.pocPhone}</span>
+              </div>
+            )}
+            {event.client.pocEmail && (
+              <div className="flex items-center gap-2 py-1">
+                <span className="text-xs font-medium text-amber-500 min-w-[130px] shrink-0">POC Email</span>
+                <span className="text-sm text-zinc-100">{event.client.pocEmail}</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-zinc-600 italic">No client assigned</p>
+        )}
+      </div>
 
       {/* Crew Roles */}
       <div
