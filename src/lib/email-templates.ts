@@ -140,3 +140,39 @@ export function buildDailyReminderEmail(
 
   return baseWrapper(content, appUrl);
 }
+
+export function buildDayOfEmail(
+  userName: string,
+  tasks: DailyTask[],
+  appUrl: string
+): string {
+  let taskList = "";
+  for (const t of tasks) {
+    taskList += `
+      <tr><td style="padding:12px 16px;border-bottom:1px solid ${COLORS.border};">
+        <a href="${appUrl}/events/${t.eventId}" style="font-size:15px;color:${COLORS.amber};text-decoration:none;font-weight:500;">${t.name}</a>
+        <p style="margin:4px 0 0;font-size:13px;color:${COLORS.textMuted};">
+          ${t.eventTitle} &middot; ${t.phase}
+        </p>
+      </td></tr>`;
+  }
+
+  const content = `
+    <tr><td style="padding:24px;text-align:center;">
+      <h1 style="margin:0;font-size:24px;font-weight:300;color:${COLORS.text};letter-spacing:2px;">venyou</h1>
+      <p style="margin:4px 0 0;font-size:13px;color:#ef4444;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Today&rsquo;s Tasks</p>
+    </td></tr>
+    <tr><td style="padding:0 24px;">
+      <p style="margin:0;font-size:15px;color:${COLORS.text};">Hi ${userName},</p>
+      <p style="margin:8px 0 0;font-size:14px;color:${COLORS.textMuted};">
+        You have <strong style="color:#ef4444;">${tasks.length}</strong> task${tasks.length === 1 ? "" : "s"} due <strong style="color:#ef4444;">today</strong>:
+      </p>
+    </td></tr>
+    <tr><td style="padding:16px 24px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.bgLight};border-radius:8px;overflow:hidden;">
+        ${taskList}
+      </table>
+    </td></tr>`;
+
+  return baseWrapper(content, appUrl);
+}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail, sendSms } from "@/lib/notifications";
-import { buildDailyReminderEmail } from "@/lib/email-templates";
+import { buildDayOfEmail } from "@/lib/email-templates";
 
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
@@ -23,18 +23,17 @@ export async function POST(req: NextRequest) {
 
   try {
     const now = new Date();
-    const tomorrowStart = new Date(now);
-    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-    tomorrowStart.setHours(0, 0, 0, 0);
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
 
-    const tomorrowEnd = new Date(tomorrowStart);
-    tomorrowEnd.setHours(23, 59, 59, 999);
+    const todayEnd = new Date(todayStart);
+    todayEnd.setHours(23, 59, 59, 999);
 
     const tasks = await prisma.task.findMany({
       where: {
         dueDate: {
-          gte: tomorrowStart,
-          lte: tomorrowEnd,
+          gte: todayStart,
+          lte: todayEnd,
         },
         status: {
           notIn: ["done", "skipped"],
@@ -81,11 +80,11 @@ export async function POST(req: NextRequest) {
 
       // Send email
       if (user.emailEnabled) {
-        const html = buildDailyReminderEmail(user.name, taskData, appUrl);
+        const html = buildDayOfEmail(user.name, taskData, appUrl);
         const sent = await sendEmail(
           user.email,
-          `venyou — ${userTasks.length} task${userTasks.length === 1 ? "" : "s"} due tomorrow`,
-          `You have ${userTasks.length} task(s) due tomorrow.`,
+          `venyou — ${userTasks.length} task${userTasks.length === 1 ? "" : "s"} due TODAY`,
+          `You have ${userTasks.length} task(s) due today.`,
           html
         );
         if (sent) emailsSent++;
@@ -96,7 +95,7 @@ export async function POST(req: NextRequest) {
         const taskList = userTasks
           .map((t) => `• ${t.name} (${t.event.title})`)
           .join("\n");
-        const smsBody = `venyou: You have ${userTasks.length} task${userTasks.length === 1 ? "" : "s"} due TOMORROW:\n${taskList}\n${appUrl}`;
+        const smsBody = `venyou: You have ${userTasks.length} task${userTasks.length === 1 ? "" : "s"} due TODAY:\n${taskList}\n${appUrl}`;
         const sent = await sendSms(user.phone, smsBody);
         if (sent) smsSent++;
       }
@@ -110,7 +109,7 @@ export async function POST(req: NextRequest) {
       usersNotified: Object.keys(tasksByUser).length,
     });
   } catch (error) {
-    console.error("[cron/daily-reminders] Error:", error);
+    console.error("[cron/day-of] Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
