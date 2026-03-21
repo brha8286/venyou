@@ -36,7 +36,7 @@ export default function AuthLayout({
 
   const user = {
     name: session.user?.name ?? "User",
-    role: (session.user as { role?: string })?.role ?? "member",
+    role: (session.user as { systemRole?: string })?.systemRole ?? "member",
   };
 
   return (
