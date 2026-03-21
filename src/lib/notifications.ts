@@ -45,16 +45,54 @@ function getMailTransporter() {
   });
 }
 
-export async function sendEmail(
+async function sendViaResend(
   to: string,
   subject: string,
-  body: string
+  html: string
 ): Promise<boolean> {
-  const transporter = getMailTransporter();
-  if (!transporter) {
-    console.log(`[notifications] Would send email to ${to}: ${subject}`);
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return false;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: process.env.EMAIL_FROM || "venyou@subculture.audio",
+        to,
+        subject,
+        html,
+      }),
+    });
+
+    if (res.ok) {
+      console.log(`[notifications] Email sent via Resend to ${to}: ${subject}`);
+      return true;
+    }
+
+    const errorBody = await res.text();
+    console.error(
+      `[notifications] Resend API error (${res.status}):`,
+      errorBody
+    );
+    return false;
+  } catch (error) {
+    console.error(`[notifications] Resend request failed:`, error);
     return false;
   }
+}
+
+async function sendViaSmtp(
+  to: string,
+  subject: string,
+  body: string,
+  html?: string
+): Promise<boolean> {
+  const transporter = getMailTransporter();
+  if (!transporter) return false;
 
   try {
     await transporter.sendMail({
@@ -62,13 +100,35 @@ export async function sendEmail(
       to,
       subject,
       text: body,
+      ...(html ? { html } : {}),
     });
-    console.log(`[notifications] Email sent to ${to}: ${subject}`);
+    console.log(`[notifications] Email sent via SMTP to ${to}: ${subject}`);
     return true;
   } catch (error) {
-    console.error(`[notifications] Failed to send email to ${to}:`, error);
+    console.error(`[notifications] SMTP send failed to ${to}:`, error);
     return false;
   }
+}
+
+export async function sendEmail(
+  to: string,
+  subject: string,
+  body: string,
+  html?: string
+): Promise<boolean> {
+  // Try Resend first if HTML is provided and API key exists
+  if (html && process.env.RESEND_API_KEY) {
+    const resendResult = await sendViaResend(to, subject, html);
+    if (resendResult) return true;
+    console.log(`[notifications] Resend failed, falling back to SMTP for ${to}`);
+  }
+
+  // Fall back to SMTP
+  const smtpResult = await sendViaSmtp(to, subject, body, html);
+  if (smtpResult) return true;
+
+  console.log(`[notifications] Would send email to ${to}: ${subject}`);
+  return false;
 }
 
 export async function sendSms(to: string, body: string): Promise<boolean> {
