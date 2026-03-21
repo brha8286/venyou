@@ -127,9 +127,10 @@ export async function PATCH(
       where: { eventId: id, isGenerated: true },
     });
 
+    const emFallback = roleMap.get("event_manager") || null;
     for (const task of generatedTasks) {
       if (task.assignedRole) {
-        const newUserId = roleMap.get(task.assignedRole) || null;
+        const newUserId = roleMap.get(task.assignedRole) || emFallback;
         await prisma.task.update({
           where: { id: task.id },
           data: { assignedUserId: newUserId },

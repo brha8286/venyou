@@ -80,13 +80,19 @@ export async function generateTasksForEvent(eventId: string) {
         : null;
 
     // Determine assignee: explicit template assignee takes priority,
-    // then fall back to role-based auto-assignment from event assignments
+    // then role-based auto-assignment, then fall back to event manager
     let assignedUserId = template.defaultAssigneeUserId;
     if (!assignedUserId && template.defaultRole) {
       const roleUsers = roleAssignmentMap.get(template.defaultRole);
       if (roleUsers && roleUsers.length > 0) {
-        // For multi-assignee roles (e.g. "hands"), pick the first available user
         assignedUserId = roleUsers[0];
+      }
+    }
+    // If still unassigned, fall back to event manager
+    if (!assignedUserId) {
+      const emUsers = roleAssignmentMap.get("event_manager");
+      if (emUsers && emUsers.length > 0) {
+        assignedUserId = emUsers[0];
       }
     }
 
