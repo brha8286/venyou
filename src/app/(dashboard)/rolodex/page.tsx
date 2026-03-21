@@ -169,114 +169,6 @@ export default function RolodexPage() {
     }
   }
 
-  function FormFields({ form, setForm }: { form: ContactForm; setForm: (f: ContactForm) => void }) {
-    const isBusiness = form.type === "vendor" || form.type === "client";
-    return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">Type *</label>
-            <select
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value as ContactType })}
-              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-            >
-              <option value="staff">Staff</option>
-              <option value="vendor">Vendor</option>
-              <option value="client">Client</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">
-              {isBusiness ? "Business Name *" : "Name *"}
-            </label>
-            <input
-              type="text"
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder={isBusiness ? "Business name" : "Full name"}
-              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">
-              {isBusiness ? "Business Phone" : "Phone"}
-            </label>
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="(512) 000-0000"
-              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">
-              {isBusiness ? "Business Email" : "Email"}
-            </label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder={isBusiness ? "info@company.com" : "name@email.com"}
-              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-            />
-          </div>
-        </div>
-
-        {isBusiness && (
-          <div>
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Point of Contact</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Name</label>
-                <input
-                  type="text"
-                  value={form.pocName}
-                  onChange={(e) => setForm({ ...form, pocName: e.target.value })}
-                  placeholder="Contact name"
-                  className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Phone</label>
-                <input
-                  type="tel"
-                  value={form.pocPhone}
-                  onChange={(e) => setForm({ ...form, pocPhone: e.target.value })}
-                  placeholder="(512) 000-0000"
-                  className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={form.pocEmail}
-                  onChange={(e) => setForm({ ...form, pocEmail: e.target.value })}
-                  placeholder="poc@company.com"
-                  className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">Notes</label>
-          <textarea
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            rows={2}
-            placeholder="Optional notes..."
-            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-none"
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6" data-ui="rolodex-page">
       <div className="flex items-center justify-between gap-4">
@@ -426,6 +318,114 @@ export default function RolodexPage() {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function FormFields({ form, setForm }: { form: ContactForm; setForm: (f: ContactForm) => void }) {
+  const isBusiness = form.type === "vendor" || form.type === "client";
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-zinc-400 mb-1">Type *</label>
+          <select
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value as ContactType })}
+            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          >
+            <option value="staff">Staff</option>
+            <option value="vendor">Vendor</option>
+            <option value="client">Client</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-zinc-400 mb-1">
+            {isBusiness ? "Business Name *" : "Name *"}
+          </label>
+          <input
+            type="text"
+            required
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder={isBusiness ? "Business name" : "Full name"}
+            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-zinc-400 mb-1">
+            {isBusiness ? "Business Phone" : "Phone"}
+          </label>
+          <input
+            type="tel"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            placeholder="(512) 000-0000"
+            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-zinc-400 mb-1">
+            {isBusiness ? "Business Email" : "Email"}
+          </label>
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder={isBusiness ? "info@company.com" : "name@email.com"}
+            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          />
+        </div>
+      </div>
+
+      {isBusiness && (
+        <div>
+          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Point of Contact</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Name</label>
+              <input
+                type="text"
+                value={form.pocName}
+                onChange={(e) => setForm({ ...form, pocName: e.target.value })}
+                placeholder="Contact name"
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Phone</label>
+              <input
+                type="tel"
+                value={form.pocPhone}
+                onChange={(e) => setForm({ ...form, pocPhone: e.target.value })}
+                placeholder="(512) 000-0000"
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Email</label>
+              <input
+                type="email"
+                value={form.pocEmail}
+                onChange={(e) => setForm({ ...form, pocEmail: e.target.value })}
+                placeholder="poc@company.com"
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-xs font-medium text-zinc-400 mb-1">Notes</label>
+        <textarea
+          value={form.notes}
+          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          rows={2}
+          placeholder="Optional notes..."
+          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-none"
+        />
+      </div>
     </div>
   );
 }
