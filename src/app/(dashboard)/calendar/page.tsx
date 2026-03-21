@@ -68,11 +68,18 @@ export default function CalendarPage() {
     fetchData();
   }, [fetchData]);
 
+  // Parse date strings as local dates to avoid timezone shift
+  const parseLocalDate = (dateStr: string) => {
+    const d = dateStr.split("T")[0]; // "2026-03-22"
+    const [y, m, day] = d.split("-").map(Number);
+    return new Date(y, m - 1, day);
+  };
+
   const getEventsForDay = (day: Date) =>
-    events.filter((e) => isSameDay(new Date(e.eventDate), day));
+    events.filter((e) => isSameDay(parseLocalDate(e.eventDate), day));
 
   const getTasksForDay = (day: Date) =>
-    tasks.filter((t) => isSameDay(new Date(t.dueDate), day));
+    tasks.filter((t) => isSameDay(parseLocalDate(t.dueDate), day));
 
   const getTaskStatusCounts = (dayTasks: Task[]) => {
     const counts: Record<string, number> = {};

@@ -41,7 +41,8 @@ function formatDate(dateStr: string): string {
 
 function isOverdue(task: Task): boolean {
   if (task.status === "done" || task.status === "skipped") return false;
-  return new Date(task.dueDate) < new Date(new Date().toDateString());
+  const [y, m, d] = task.dueDate.split("T")[0].split("-").map(Number);
+  return new Date(y, m - 1, d) < new Date(new Date().toDateString());
 }
 
 export default function BoardPage() {
