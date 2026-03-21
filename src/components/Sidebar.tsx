@@ -24,6 +24,7 @@ const navItems: NavItem[] = [
   { label: "Tasks", href: "/tasks" },
   { label: "Calendar", href: "/calendar" },
   { label: "Board", href: "/board" },
+  { label: "Rolodex", href: "/rolodex", adminOnly: true },
   { label: "Templates", href: "/admin/templates", adminOnly: true },
   { label: "Users", href: "/admin/users", adminOnly: true },
   { label: "Venues", href: "/admin/venues", adminOnly: true },
