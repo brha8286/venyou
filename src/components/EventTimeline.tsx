@@ -158,6 +158,7 @@ export default function EventTimeline({ eventDate, tasks, onTaskClick }: EventTi
               style={{ left: `${x}%`, transform: "translateX(-50%)", width: "2rem" }}
               onMouseEnter={() => setHoveredCluster(offset)}
               onMouseLeave={() => { setHoveredCluster(null); setHoveredTaskId(null); }}
+              onClick={() => setHoveredCluster(hoveredCluster === offset ? null : offset)}
             >
               {/* Stacked dots */}
               <div className="flex flex-col-reverse items-center gap-1 mb-0">
@@ -177,10 +178,15 @@ export default function EventTimeline({ eventDate, tasks, onTaskClick }: EventTi
                       onMouseLeave={() => setHoveredTaskId(null)}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onTaskClick?.(task.id);
+                        if (window.matchMedia("(pointer: coarse)").matches) {
+                          setHoveredCluster(offset);
+                          setHoveredTaskId(task.id);
+                        } else {
+                          onTaskClick?.(task.id);
+                        }
                       }}
                       className={`relative w-3.5 h-3.5 rounded-full border-2 transition-all cursor-pointer ${
-                        hoveredTaskId === task.id ? "scale-150 ring-2 ring-white/40" : "hover:scale-125"
+                        hoveredTaskId === task.id ? "scale-150 ring-2 ring-white/40" : "sm:hover:scale-125"
                       }`}
                       style={{
                         borderColor: color,
