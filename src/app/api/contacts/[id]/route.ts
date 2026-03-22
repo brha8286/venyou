@@ -11,18 +11,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   const { id } = await params;
   const body = await request.json();
-  const { type, name, phone, email, pocName, pocPhone, pocEmail, notes } = body;
+  const { name, phone, email, pocName, notes } = body;
 
   const contact = await prisma.contact.update({
     where: { id },
     data: {
-      ...(type !== undefined && { type }),
       ...(name !== undefined && { name }),
       phone: phone || null,
       email: email || null,
       pocName: pocName || null,
-      pocPhone: pocPhone || null,
-      pocEmail: pocEmail || null,
       notes: notes || null,
     },
   });

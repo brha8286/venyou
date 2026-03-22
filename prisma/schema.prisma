@@ -192,13 +192,10 @@ model TaskNotification {
 
 model Contact {
   id        String   @id @default(uuid()) @db.Uuid
-  type      String   // staff, vendor, client
   name      String
   phone     String?
   email     String?
   pocName   String?  @map("poc_name")
-  pocPhone  String?  @map("poc_phone")
-  pocEmail  String?  @map("poc_email")
   notes     String?
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz

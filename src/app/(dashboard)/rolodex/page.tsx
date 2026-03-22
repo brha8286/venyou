@@ -3,60 +3,30 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 
-type ContactType = "staff" | "vendor" | "client";
-
 interface Contact {
   id: string;
-  type: ContactType;
   name: string;
   phone: string | null;
   email: string | null;
   pocName: string | null;
-  pocPhone: string | null;
-  pocEmail: string | null;
   notes: string | null;
 }
 
 interface ContactForm {
-  type: ContactType;
   name: string;
   phone: string;
   email: string;
   pocName: string;
-  pocPhone: string;
-  pocEmail: string;
   notes: string;
 }
 
 const emptyForm = (): ContactForm => ({
-  type: "staff",
   name: "",
   phone: "",
   email: "",
   pocName: "",
-  pocPhone: "",
-  pocEmail: "",
   notes: "",
 });
-
-const TYPE_LABELS: Record<ContactType, string> = {
-  staff: "Staff",
-  vendor: "Vendor",
-  client: "Client",
-};
-
-const TYPE_COLORS: Record<ContactType, string> = {
-  staff: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  vendor: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  client: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-};
-
-const TABS: { key: ContactType | "all"; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "staff", label: "Staff" },
-  { key: "vendor", label: "Vendors" },
-  { key: "client", label: "Clients" },
-];
 
 export default function RolodexPage() {
   const { data: session } = useSession();
@@ -64,7 +34,6 @@ export default function RolodexPage() {
 
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<ContactType | "all">("all");
   const [search, setSearch] = useState("");
 
   const [showAdd, setShowAdd] = useState(false);
@@ -85,17 +54,14 @@ export default function RolodexPage() {
   }, []);
 
   const filtered = contacts.filter((c) => {
-    if (activeTab !== "all" && c.type !== activeTab) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (
-        c.name.toLowerCase().includes(q) ||
-        (c.pocName?.toLowerCase().includes(q) ?? false) ||
-        (c.email?.toLowerCase().includes(q) ?? false) ||
-        (c.phone?.includes(q) ?? false)
-      );
-    }
-    return true;
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      c.name.toLowerCase().includes(q) ||
+      (c.pocName?.toLowerCase().includes(q) ?? false) ||
+      (c.email?.toLowerCase().includes(q) ?? false) ||
+      (c.phone?.includes(q) ?? false)
+    );
   });
 
   async function handleAdd(e: React.FormEvent) {
@@ -126,13 +92,10 @@ export default function RolodexPage() {
   function startEdit(contact: Contact) {
     setEditingId(contact.id);
     setEditForm({
-      type: contact.type,
       name: contact.name,
       phone: contact.phone ?? "",
       email: contact.email ?? "",
       pocName: contact.pocName ?? "",
-      pocPhone: contact.pocPhone ?? "",
-      pocEmail: contact.pocEmail ?? "",
       notes: contact.notes ?? "",
     });
     setExpandedId(contact.id);
@@ -203,28 +166,15 @@ export default function RolodexPage() {
         </form>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex gap-1 bg-zinc-900 p-1 rounded-lg" data-ui="rolodex-type-tabs">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === tab.key ? "bg-zinc-800 text-amber-500" : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50"}`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name, email, or phone..."
-          data-ui="rolodex-search"
-          className="flex-1 px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-        />
-      </div>
+      {/* Search */}
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search by name, email, or phone..."
+        data-ui="rolodex-search"
+        className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+      />
 
       {/* Contact list */}
       {loading ? (
@@ -236,7 +186,6 @@ export default function RolodexPage() {
       ) : (
         <div className="space-y-2" data-ui="contact-list">
           {filtered.map((contact) => {
-            const isBusiness = contact.type === "vendor" || contact.type === "client";
             const isExpanded = expandedId === contact.id;
             const isEditing = editingId === contact.id;
 
@@ -254,15 +203,12 @@ export default function RolodexPage() {
                     if (!isEditing) setExpandedId(isExpanded ? null : contact.id);
                   }}
                 >
-                  <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border shrink-0 ${TYPE_COLORS[contact.type]}`}>
-                    {TYPE_LABELS[contact.type]}
-                  </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-zinc-100 truncate">{contact.name}</p>
-                    {isBusiness && contact.pocName && (
+                    {contact.pocName && (
                       <p className="text-xs text-zinc-500 truncate">POC: {contact.pocName}</p>
                     )}
-                    {!isBusiness && contact.email && (
+                    {!contact.pocName && contact.email && (
                       <p className="text-xs text-zinc-500 truncate">{contact.email}</p>
                     )}
                   </div>
@@ -305,9 +251,7 @@ export default function RolodexPage() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
                         {contact.phone && <Detail label="Phone" value={contact.phone} />}
                         {contact.email && <Detail label="Email" value={contact.email} />}
-                        {isBusiness && contact.pocName && <Detail label="POC Name" value={contact.pocName} />}
-                        {isBusiness && contact.pocPhone && <Detail label="POC Phone" value={contact.pocPhone} />}
-                        {isBusiness && contact.pocEmail && <Detail label="POC Email" value={contact.pocEmail} />}
+                        {contact.pocName && <Detail label="POC Name" value={contact.pocName} />}
                         {contact.notes && <Detail label="Notes" value={contact.notes} className="sm:col-span-2" />}
                       </div>
                     )}
@@ -323,39 +267,22 @@ export default function RolodexPage() {
 }
 
 function FormFields({ form, setForm }: { form: ContactForm; setForm: (f: ContactForm) => void }) {
-  const isBusiness = form.type === "vendor" || form.type === "client";
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">Type *</label>
-          <select
-            value={form.type}
-            onChange={(e) => setForm({ ...form, type: e.target.value as ContactType })}
-            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-          >
-            <option value="staff">Staff</option>
-            <option value="vendor">Vendor</option>
-            <option value="client">Client</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            {isBusiness ? "Business Name *" : "Name *"}
-          </label>
+        <div className="sm:col-span-2">
+          <label className="block text-xs font-medium text-zinc-400 mb-1">Name *</label>
           <input
             type="text"
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder={isBusiness ? "Business name" : "Full name"}
+            placeholder="Full name or business name"
             className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            {isBusiness ? "Business Phone" : "Phone"}
-          </label>
+          <label className="block text-xs font-medium text-zinc-400 mb-1">Phone</label>
           <input
             type="tel"
             value={form.phone}
@@ -365,56 +292,27 @@ function FormFields({ form, setForm }: { form: ContactForm; setForm: (f: Contact
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            {isBusiness ? "Business Email" : "Email"}
-          </label>
+          <label className="block text-xs font-medium text-zinc-400 mb-1">Email</label>
           <input
             type="email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            placeholder={isBusiness ? "info@company.com" : "name@email.com"}
+            placeholder="name@email.com"
             className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
           />
         </div>
       </div>
 
-      {isBusiness && (
-        <div>
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Point of Contact</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">Name</label>
-              <input
-                type="text"
-                value={form.pocName}
-                onChange={(e) => setForm({ ...form, pocName: e.target.value })}
-                placeholder="Contact name"
-                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">Phone</label>
-              <input
-                type="tel"
-                value={form.pocPhone}
-                onChange={(e) => setForm({ ...form, pocPhone: e.target.value })}
-                placeholder="(512) 000-0000"
-                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">Email</label>
-              <input
-                type="email"
-                value={form.pocEmail}
-                onChange={(e) => setForm({ ...form, pocEmail: e.target.value })}
-                placeholder="poc@company.com"
-                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <div>
+        <label className="block text-xs font-medium text-zinc-400 mb-1">Point of Contact Name</label>
+        <input
+          type="text"
+          value={form.pocName}
+          onChange={(e) => setForm({ ...form, pocName: e.target.value })}
+          placeholder="Contact person's name"
+          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+        />
+      </div>
 
       <div>
         <label className="block text-xs font-medium text-zinc-400 mb-1">Notes</label>

@@ -74,7 +74,7 @@ export default function NewEventPage() {
         setUsers(await usersRes.json());
         if (contactsRes.ok) {
           const all = await contactsRes.json();
-          setClients(all.filter((c: { type: string }) => c.type === "client"));
+          setClients(all);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");

@@ -54,7 +54,7 @@ interface EventData {
   merchPresent: boolean;
   venue: { id: string; name: string } | null;
   eventTemplate: { id: string; name: string } | null;
-  client: { id: string; name: string; pocName: string | null; pocPhone: string | null; pocEmail: string | null } | null;
+  client: { id: string; name: string; pocName: string | null } | null;
   tasks: Task[];
   eventAssignments: Array<{
     id: string;
@@ -197,7 +197,7 @@ export default function EventDetailPage() {
         const res = await fetch("/api/contacts");
         if (res.ok) {
           const all = await res.json();
-          setClients(all.filter((c: { type: string }) => c.type === "client"));
+          setClients(all);
         }
       } catch {
         // Non-critical
@@ -767,18 +767,6 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
               <div className="flex items-center gap-2 py-1">
                 <span className="text-xs font-medium text-amber-500 min-w-[130px] shrink-0">POC</span>
                 <span className="text-sm text-zinc-100">{event.client.pocName}</span>
-              </div>
-            )}
-            {event.client.pocPhone && (
-              <div className="flex items-center gap-2 py-1">
-                <span className="text-xs font-medium text-amber-500 min-w-[130px] shrink-0">POC Phone</span>
-                <span className="text-sm text-zinc-100">{event.client.pocPhone}</span>
-              </div>
-            )}
-            {event.client.pocEmail && (
-              <div className="flex items-center gap-2 py-1">
-                <span className="text-xs font-medium text-amber-500 min-w-[130px] shrink-0">POC Email</span>
-                <span className="text-sm text-zinc-100">{event.client.pocEmail}</span>
               </div>
             )}
           </div>
