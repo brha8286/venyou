@@ -615,6 +615,15 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
             )}
             {isAdminOrManager && (
               <button
+                onClick={() => router.push(`/events/${eventId}/edit`)}
+                data-ui="edit-event-btn"
+                className="px-3 py-1.5 bg-zinc-700 border border-zinc-600 text-zinc-200 hover:bg-zinc-600 text-sm rounded-md transition-colors"
+              >
+                Edit
+              </button>
+            )}
+            {isAdminOrManager && (
+              <button
                 onClick={openExportModal}
                 data-ui="export-event-btn"
                 className="px-3 py-1.5 bg-zinc-700 border border-zinc-600 text-zinc-200 hover:bg-zinc-600 text-sm rounded-md transition-colors"
