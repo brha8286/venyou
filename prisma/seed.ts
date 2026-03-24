@@ -157,8 +157,8 @@ async function main() {
     { phase: 'promotion', name: 'Publish day-of post', dueOffsetDays: 0, defaultRole: 'marketing_lead', sortOrder: 26 },
 
     // Crew phase
-    { phase: 'crew', name: 'Organize load-in hands', dueOffsetDays: -7, defaultRole: 'event_manager', sortOrder: 32 },
-    { phase: 'crew', name: 'Organize load-out hands', dueOffsetDays: -7, defaultRole: 'event_manager', sortOrder: 33 },
+    { phase: 'crew', name: 'Organize load-in hands', dueOffsetDays: -7, defaultRole: 'driver', sortOrder: 32 },
+    { phase: 'crew', name: 'Organize load-out hands', dueOffsetDays: -7, defaultRole: 'driver', sortOrder: 33 },
 
     // Transportation phase (all conditional on transport_required)
     {
@@ -178,7 +178,7 @@ async function main() {
     },
 
     // Event Day phase
-    { phase: 'event_day', name: 'Load-in', dueOffsetDays: -1, defaultRole: 'event_manager', sortOrder: 50 },
+    { phase: 'event_day', name: 'Load-in', dueOffsetDays: -1, defaultRole: 'driver', sortOrder: 50 },
     { phase: 'event_day', name: 'Soundcheck', dueOffsetDays: 0, defaultRole: 'technical_lead', sortOrder: 51 },
 
     // Strike phase
@@ -230,8 +230,8 @@ async function main() {
     { phase: 'promotion', name: 'Publish day-of post', dueOffsetDays: 0, defaultRole: 'marketing_lead', sortOrder: 21 },
 
     // Crew phase
-    { phase: 'crew', name: 'Organize load-in hands', dueOffsetDays: -7, defaultRole: 'event_manager', sortOrder: 32 },
-    { phase: 'crew', name: 'Organize load-out hands', dueOffsetDays: -7, defaultRole: 'event_manager', sortOrder: 33 },
+    { phase: 'crew', name: 'Organize load-in hands', dueOffsetDays: -7, defaultRole: 'driver', sortOrder: 32 },
+    { phase: 'crew', name: 'Organize load-out hands', dueOffsetDays: -7, defaultRole: 'driver', sortOrder: 33 },
 
     // Transportation phase (all conditional)
     {
@@ -251,7 +251,7 @@ async function main() {
     },
 
     // Event Day phase
-    { phase: 'event_day', name: 'Load-in', dueOffsetDays: -1, defaultRole: 'event_manager', sortOrder: 50 },
+    { phase: 'event_day', name: 'Load-in', dueOffsetDays: -1, defaultRole: 'driver', sortOrder: 50 },
     { phase: 'event_day', name: 'Soundcheck', dueOffsetDays: 0, defaultRole: 'technical_lead', sortOrder: 51 },
 
     // Strike phase
