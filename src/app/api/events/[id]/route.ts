@@ -65,6 +65,7 @@ export async function PATCH(
   const allowedFields = [
     "title",
     "description",
+    "eventDate",
     "venueId",
     "clientId",
     "status",
@@ -81,6 +82,8 @@ export async function PATCH(
     if (field in rest) {
       if (field === "startTime" || field === "endTime") {
         data[field] = rest[field] ? new Date(rest[field]) : null;
+      } else if (field === "eventDate") {
+        data[field] = new Date(rest[field]);
       } else {
         data[field] = rest[field];
       }
