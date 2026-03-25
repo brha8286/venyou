@@ -158,12 +158,12 @@ export default function EditEventPage() {
       };
 
       if (form.startTime) {
-        body.startTime = `${form.eventDate}T${form.startTime}:00`;
+        body.startTime = new Date(`${form.eventDate}T${form.startTime}`).toISOString();
       } else {
         body.startTime = null;
       }
       if (form.endTime) {
-        body.endTime = `${form.eventDate}T${form.endTime}:00`;
+        body.endTime = new Date(`${form.eventDate}T${form.endTime}`).toISOString();
       } else {
         body.endTime = null;
       }

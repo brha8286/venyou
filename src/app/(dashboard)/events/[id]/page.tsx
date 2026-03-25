@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
-import { format, parseISO, isPast } from "date-fns";
+import { format, isPast } from "date-fns";
 import StatusBadge from "@/components/StatusBadge";
 import PhaseBadge from "@/components/PhaseBadge";
 import EventTimeline from "@/components/EventTimeline";
@@ -31,7 +31,7 @@ interface Task {
   status: TaskStatus;
   sortOrder: number;
   dueDate: string;
-  startDate: string | null;
+  size: string | null;
   assignedUserId: string | null;
   assignedUser: User | null;
   assignedRole: string | null;
@@ -102,9 +102,14 @@ const PHASE_LABELS: Record<string, string> = {
   post_event: "Post-Event",
 };
 
+function parseLocalDate(dateStr: string) {
+  const [y, m, d] = dateStr.split("T")[0].split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function formatDate(dateStr: string) {
   try {
-    return format(parseISO(dateStr), "MMM d, yyyy");
+    return format(parseLocalDate(dateStr), "MMM d, yyyy");
   } catch {
     return dateStr;
   }
@@ -1056,7 +1061,7 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                       {tasks.map((task) => {
                         const isOverdue =
                           task.dueDate &&
-                          isPast(parseISO(task.dueDate)) &&
+                          isPast(parseLocalDate(task.dueDate)) &&
                           task.status !== "done" &&
                           task.status !== "skipped";
                         const isExpanded = expandedTasks.has(task.id);

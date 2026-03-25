@@ -119,10 +119,10 @@ export default function NewEventPage() {
       if (form.clientId) body.clientId = form.clientId;
       if (form.description) body.description = form.description;
       if (form.startTime) {
-        body.startTime = `${form.eventDate}T${form.startTime}:00`;
+        body.startTime = new Date(`${form.eventDate}T${form.startTime}`).toISOString();
       }
       if (form.endTime) {
-        body.endTime = `${form.eventDate}T${form.endTime}:00`;
+        body.endTime = new Date(`${form.eventDate}T${form.endTime}`).toISOString();
       }
 
       const res = await fetch("/api/events", {
