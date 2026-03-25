@@ -29,7 +29,7 @@ export async function GET(
       eventAssignments: {
         include: { user: { select: { id: true, name: true } } },
       },
-      client: { select: { id: true, name: true, pocName: true, pocPhone: true, pocEmail: true } },
+      client: { select: { id: true, name: true, pocName: true } },
     },
   });
 
