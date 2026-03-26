@@ -62,6 +62,7 @@ export async function POST(
           task.name,
           task.event.title,
           task.event.id,
+          task.id,
           commentBody,
           appUrl
         );

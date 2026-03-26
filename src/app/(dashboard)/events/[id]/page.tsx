@@ -204,6 +204,28 @@ export default function EventDetailPage() {
     fetchEvent();
   }, [fetchEvent]);
 
+  // On load, if URL has #task-<id>, expand and scroll to that task
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash.startsWith("#task-")) return;
+    const taskId = hash.slice(6);
+    setExpandedTasks((prev) => new Set([...prev, taskId]));
+    // Fetch comments for this task
+    fetch(`/api/tasks/${taskId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.comments) {
+          setTaskComments((prev) => ({ ...prev, [taskId]: data.comments }));
+        }
+      })
+      .catch(() => {});
+    // Wait for event data + render, then scroll
+    setTimeout(() => {
+      const el = document.querySelector(`[data-ui="task-row"][data-task-id="${taskId}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 600);
+  }, []);
+
   useEffect(() => {
     async function fetchUsers() {
       try {

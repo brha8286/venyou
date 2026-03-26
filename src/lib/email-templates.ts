@@ -183,6 +183,7 @@ export function buildMentionEmail(
   taskName: string,
   eventTitle: string,
   eventId: string,
+  taskId: string,
   commentBody: string,
   appUrl: string
 ): string {
@@ -205,7 +206,7 @@ export function buildMentionEmail(
       </div>
     </td></tr>
     <tr><td style="padding:0 24px 24px;">
-      <a href="${appUrl}/events/${eventId}" style="display:inline-block;padding:10px 20px;background-color:${COLORS.amber};color:#18181b;font-weight:600;font-size:14px;text-decoration:none;border-radius:6px;">
+      <a href="${appUrl}/events/${eventId}#task-${taskId}" style="display:inline-block;padding:10px 20px;background-color:${COLORS.amber};color:#18181b;font-weight:600;font-size:14px;text-decoration:none;border-radius:6px;">
         View Task
       </a>
     </td></tr>`;
