@@ -38,7 +38,9 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  if (session.user.systemRole === "crew") {
+  if (session.user.systemRole === "crew" && !eventId) {
+    // On the global tasks page, crew only sees their own tasks.
+    // When scoped to a specific event, all event tasks are visible.
     where.assignedUserId = session.user.id;
   }
 

@@ -20,11 +20,10 @@ export async function GET(request: NextRequest) {
   }
 
   if (session.user.systemRole === "crew") {
-    where.tasks = {
-      some: {
-        assignedUserId: session.user.id,
-      },
-    };
+    where.OR = [
+      { tasks: { some: { assignedUserId: session.user.id } } },
+      { eventAssignments: { some: { userId: session.user.id } } },
+    ];
   }
 
   const events = await prisma.event.findMany({
