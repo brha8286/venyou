@@ -53,7 +53,6 @@ export async function POST(
     const authorName = comment.author.name;
 
     for (const user of allUsers) {
-      if (user.id === session.user.id) continue;
       const escaped = user.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const pattern = new RegExp(`@${escaped}(?=\\s|$|[^a-zA-Z])`, "i");
       if (pattern.test(commentBody)) {
