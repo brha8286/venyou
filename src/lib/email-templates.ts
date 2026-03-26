@@ -176,3 +176,39 @@ export function buildDayOfEmail(
 
   return baseWrapper(content, appUrl);
 }
+
+export function buildMentionEmail(
+  recipientName: string,
+  authorName: string,
+  taskName: string,
+  eventTitle: string,
+  eventId: string,
+  commentBody: string,
+  appUrl: string
+): string {
+  const escaped = commentBody.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const content = `
+    <tr><td style="padding:24px;text-align:center;">
+      <h1 style="margin:0;font-size:24px;font-weight:300;color:${COLORS.text};letter-spacing:2px;">venyou</h1>
+      <p style="margin:4px 0 0;font-size:13px;color:${COLORS.amber};text-transform:uppercase;letter-spacing:1px;font-weight:600;">You were mentioned</p>
+    </td></tr>
+    <tr><td style="padding:0 24px;">
+      <p style="margin:0;font-size:15px;color:${COLORS.text};">Hi ${recipientName},</p>
+      <p style="margin:8px 0 0;font-size:14px;color:${COLORS.textMuted};">
+        <strong style="color:${COLORS.text};">${authorName}</strong> mentioned you on
+        <strong style="color:${COLORS.text};">${taskName}</strong> &mdash; ${eventTitle}:
+      </p>
+    </td></tr>
+    <tr><td style="padding:16px 24px;">
+      <div style="background-color:${COLORS.bgLight};border-left:3px solid ${COLORS.amber};border-radius:4px;padding:12px 16px;">
+        <p style="margin:0;font-size:14px;color:${COLORS.text};white-space:pre-wrap;">${escaped}</p>
+      </div>
+    </td></tr>
+    <tr><td style="padding:0 24px 24px;">
+      <a href="${appUrl}/events/${eventId}" style="display:inline-block;padding:10px 20px;background-color:${COLORS.amber};color:#18181b;font-weight:600;font-size:14px;text-decoration:none;border-radius:6px;">
+        View Task
+      </a>
+    </td></tr>`;
+
+  return baseWrapper(content, appUrl);
+}

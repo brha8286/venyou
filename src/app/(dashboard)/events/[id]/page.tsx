@@ -131,6 +131,25 @@ function formatCommentDate(dateStr: string) {
   }
 }
 
+function renderWithMentions(body: string, userNames: string[]) {
+  if (userNames.length === 0) return <>{body}</>;
+  const names = new Set(userNames.map((n) => n.toLowerCase()));
+  const escapedNames = [...names].map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const pattern = new RegExp(`(@(?:${escapedNames.join("|")}))`, "gi");
+  const parts = body.split(pattern);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith("@") && names.has(part.slice(1).toLowerCase()) ? (
+          <span key={i} className="text-amber-400 font-medium">{part}</span>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -162,6 +181,7 @@ export default function EventDetailPage() {
   const [savingRoles, setSavingRoles] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [exportPhases, setExportPhases] = useState<Set<string>>(new Set());
+  const [mentionMenu, setMentionMenu] = useState<Record<string, { query: string; atIndex: number } | null>>({});
 
   const isAdminOrManager =
     session?.user?.systemRole === "admin" ||
@@ -433,6 +453,16 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
       next.add(phase);
     }
     setCollapsedPhases(next);
+  }
+
+  function insertMention(taskId: string, userName: string) {
+    const state = mentionMenu[taskId];
+    if (!state) return;
+    const current = commentInputs[taskId] || "";
+    const before = current.slice(0, state.atIndex);
+    const after = current.slice(state.atIndex + 1 + state.query.length);
+    setCommentInputs((prev) => ({ ...prev, [taskId]: `${before}@${userName} ${after}` }));
+    setMentionMenu((prev) => ({ ...prev, [taskId]: null }));
   }
 
   async function handleAddComment(taskId: string) {
@@ -1200,7 +1230,7 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                                             </span>
                                           </div>
                                           <p className="text-sm text-zinc-400">
-                                            {comment.body}
+                                            {renderWithMentions(comment.body, users.map((u) => u.name))}
                                           </p>
                                         </div>
                                       ))}
@@ -1209,23 +1239,55 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                                 </div>
 
                                 {/* Add Comment Form */}
-                                <div className="flex gap-2">
+                                <div className="relative flex gap-2">
+                                  {/* Mention dropdown */}
+                                  {(() => {
+                                    const m = mentionMenu[task.id];
+                                    const filtered = m
+                                      ? users.filter((u) => u.name.toLowerCase().startsWith(m.query.toLowerCase())).slice(0, 6)
+                                      : [];
+                                    return filtered.length > 0 ? (
+                                      <div className="absolute bottom-full mb-1 left-0 bg-zinc-800 border border-zinc-700 rounded-md shadow-lg z-20 min-w-40">
+                                        {filtered.map((u) => (
+                                          <button
+                                            key={u.id}
+                                            type="button"
+                                            onMouseDown={(e) => { e.preventDefault(); insertMention(task.id, u.name); }}
+                                            className="w-full text-left px-3 py-1.5 text-sm text-zinc-200 hover:bg-zinc-700 first:rounded-t-md last:rounded-b-md"
+                                          >
+                                            {u.name}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    ) : null;
+                                  })()}
                                   <input
                                     type="text"
-                                    placeholder="Add a comment..."
+                                    placeholder="Add a comment... (@name to mention)"
                                     data-ui="comment-input"
                                     value={commentInputs[task.id] || ""}
-                                    onChange={(e) =>
-                                      setCommentInputs((prev) => ({
-                                        ...prev,
-                                        [task.id]: e.target.value,
-                                      }))
-                                    }
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setCommentInputs((prev) => ({ ...prev, [task.id]: val }));
+                                      const cursor = e.target.selectionStart ?? val.length;
+                                      const before = val.slice(0, cursor);
+                                      const atMatch = before.match(/@(\w*)$/);
+                                      if (atMatch) {
+                                        setMentionMenu((prev) => ({ ...prev, [task.id]: { query: atMatch[1], atIndex: cursor - atMatch[0].length } }));
+                                      } else {
+                                        setMentionMenu((prev) => ({ ...prev, [task.id]: null }));
+                                      }
+                                    }}
                                     onKeyDown={(e) => {
-                                      if (e.key === "Enter" && !e.shiftKey) {
+                                      if (e.key === "Escape") {
+                                        setMentionMenu((prev) => ({ ...prev, [task.id]: null }));
+                                      } else if (e.key === "Enter" && !e.shiftKey && !mentionMenu[task.id]) {
                                         e.preventDefault();
                                         handleAddComment(task.id);
                                       }
+                                    }}
+                                    onBlur={() => {
+                                      setTimeout(() => setMentionMenu((prev) => ({ ...prev, [task.id]: null })), 150);
                                     }}
                                     className="flex-1 px-3 py-1.5 bg-zinc-900 border border-zinc-700 rounded text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
                                   />
@@ -1238,9 +1300,7 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                                     data-ui="comment-submit"
                                     className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 font-medium text-xs rounded transition-colors"
                                   >
-                                    {submittingComment === task.id
-                                      ? "..."
-                                      : "Post"}
+                                    {submittingComment === task.id ? "..." : "Post"}
                                   </button>
                                 </div>
                               </div>
