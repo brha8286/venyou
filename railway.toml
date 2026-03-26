@@ -1,0 +1,18 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[[cronjobs]]
+name = "day-of"
+schedule = "0 13 * * *"
+command = "curl -s -X POST https://venyou.subculture.audio/api/cron/day-of -H 'Authorization: Bearer $CRON_SECRET'"
+
+[[cronjobs]]
+name = "daily-reminders"
+schedule = "0 14 * * *"
+command = "curl -s -X POST https://venyou.subculture.audio/api/cron/daily-reminders -H 'Authorization: Bearer $CRON_SECRET'"
+
+[[cronjobs]]
+name = "weekly-digest"
+schedule = "0 14 * * 1"
+command = "curl -s -X POST https://venyou.subculture.audio/api/cron/weekly-digest -H 'Authorization: Bearer $CRON_SECRET'"
