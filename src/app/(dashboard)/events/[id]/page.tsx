@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
-import { format, isPast } from "date-fns";
+import { format, isPast, parseISO } from "date-fns";
 import StatusBadge from "@/components/StatusBadge";
 import PhaseBadge from "@/components/PhaseBadge";
 import EventTimeline from "@/components/EventTimeline";
