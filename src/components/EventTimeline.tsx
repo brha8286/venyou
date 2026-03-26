@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { parseISO, differenceInDays, format, isToday } from "date-fns";
+import { differenceInDays, format, startOfDay } from "date-fns";
+
+function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("T")[0].split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
 
 interface Task {
   id: string;
@@ -42,8 +47,8 @@ export default function EventTimeline({ eventDate, tasks, onTaskClick }: EventTi
   const [hoveredCluster, setHoveredCluster] = useState<number | null>(null);
 
   const timeline = useMemo(() => {
-    const evDate = parseISO(eventDate);
-    const today = new Date();
+    const evDate = parseLocalDate(eventDate);
+    const today = startOfDay(new Date());
     const todayOffset = differenceInDays(today, evDate);
 
     // Group tasks by due date offset
@@ -52,7 +57,7 @@ export default function EventTimeline({ eventDate, tasks, onTaskClick }: EventTi
     let maxOffset = 0;
 
     for (const task of tasks) {
-      const dueDate = parseISO(task.dueDate);
+      const dueDate = parseLocalDate(task.dueDate);
       const offset = differenceInDays(dueDate, evDate);
       if (offset < minOffset) minOffset = offset;
       if (offset > maxOffset) maxOffset = offset;
@@ -227,12 +232,7 @@ export default function EventTimeline({ eventDate, tasks, onTaskClick }: EventTi
                 }}
               >
                 <div className="font-semibold text-zinc-100 mb-1">
-                  {offsetLabel} — {format(
-                    new Date(
-                      parseISO(clusterTasks[0].dueDate)
-                    ),
-                    "MMM d"
-                  )}
+                  {offsetLabel} — {format(parseLocalDate(clusterTasks[0].dueDate), "MMM d")}
                 </div>
                 {clusterTasks.map((t) => {
                   const isHighlighted = hoveredTaskId === t.id;
