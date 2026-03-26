@@ -623,10 +623,10 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
     <div data-ui="event-detail-page">
       {/* Event Header */}
       <div data-ui="event-header" className="mb-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <div className="min-w-0">
             <h1 data-ui="event-title" className="text-2xl font-bold text-zinc-100">{event.title}</h1>
-            <div className="flex flex-wrap items-center gap-3 mt-2">
+            <div className="flex flex-col gap-0.5 mt-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
               <span className="text-sm text-zinc-400">
                 {formatDate(event.eventDate)}
               </span>
@@ -637,25 +637,19 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                 </span>
               )}
               {event.venue && (
-                <>
-                  <span className="text-zinc-600">|</span>
-                  <span className="text-sm text-zinc-400">
-                    {event.venue.name}
-                  </span>
-                </>
+                <span className="text-sm text-zinc-400">
+                  {event.venue.name}
+                </span>
               )}
               {event.eventTemplate && (
-                <>
-                  <span className="text-zinc-600">|</span>
-                  <span className="text-sm text-zinc-500">
-                    {event.eventTemplate.name}
-                  </span>
-                </>
+                <span className="text-sm text-zinc-500">
+                  {event.eventTemplate.name}
+                </span>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             {isAdminOrManager && (
               <select
                 value={event.status}
