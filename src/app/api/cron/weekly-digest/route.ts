@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://plan.subculture.audio";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://venyou.subculture.audio";
     let emailsSent = 0;
 
     for (const user of users) {

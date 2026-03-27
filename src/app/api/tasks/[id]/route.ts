@@ -33,6 +33,10 @@ export async function GET(
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
 
+  if (session.user.systemRole === "crew" && task.assignedUserId !== session.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   return NextResponse.json(task);
 }
 
@@ -56,7 +60,10 @@ export async function PATCH(
   const data: Record<string, unknown> = {};
 
   if (session.user.systemRole === "crew") {
-    // Crew can only update status
+    // Crew can only update status on tasks assigned to them
+    if (existing.assignedUserId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     if ("status" in body) {
       data.status = body.status;
     }

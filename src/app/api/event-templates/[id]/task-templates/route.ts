@@ -43,9 +43,9 @@ export async function POST(
     conditions,
   } = body;
 
-  if (!phase || !name) {
+  if (!phase || !name || dueOffsetDays === undefined || dueOffsetDays === null) {
     return NextResponse.json(
-      { error: "phase and name are required" },
+      { error: "phase, name, and dueOffsetDays are required" },
       { status: 400 }
     );
   }

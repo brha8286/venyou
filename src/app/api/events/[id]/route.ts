@@ -15,6 +15,22 @@ export async function GET(
 
   const { id } = await params;
 
+  if (session.user.systemRole === "crew") {
+    const accessible = await prisma.event.findFirst({
+      where: {
+        id,
+        OR: [
+          { tasks: { some: { assignedUserId: session.user.id } } },
+          { eventAssignments: { some: { userId: session.user.id } } },
+        ],
+      },
+      select: { id: true },
+    });
+    if (!accessible) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   const event = await prisma.event.findUnique({
     where: { id },
     include: {
@@ -88,6 +104,15 @@ export async function PATCH(
         data[field] = rest[field];
       }
     }
+  }
+
+  const startTime = data.startTime ?? existing.startTime;
+  const endTime = data.endTime ?? existing.endTime;
+  if (startTime && endTime && (endTime as Date) <= (startTime as Date)) {
+    return NextResponse.json(
+      { error: "endTime must be after startTime" },
+      { status: 400 }
+    );
   }
 
   const event = await prisma.event.update({

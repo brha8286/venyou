@@ -73,7 +73,7 @@ export default function DashboardPage() {
       try {
         const [eventsRes, overdueRes, weekRes, allTasksRes] = await Promise.all(
           [
-            fetch("/api/events?status=planning"),
+            fetch("/api/events?upcoming=true"),
             fetch("/api/tasks?overdue=true"),
             fetch("/api/tasks?upcoming=7"),
             fetch("/api/tasks"),

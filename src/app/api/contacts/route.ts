@@ -8,6 +8,9 @@ export async function GET() {
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (!canManageContacts(session.user.systemRole)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const contacts = await prisma.contact.findMany({
     orderBy: { name: "asc" },
@@ -18,7 +21,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session?.user || !canManageContacts(session.user.systemRole)) {
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!canManageContacts(session.user.systemRole)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
