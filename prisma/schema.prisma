@@ -71,7 +71,7 @@ model TaskTemplate {
   description      String?
   sortOrder        Int      @default(0) @map("sort_order")
   dueOffsetDays    Int      @map("due_offset_days")
-  startOffsetDays  Int?     @map("start_offset_days")
+  size             String?  // small, medium, large
   defaultRole      String?  @map("default_role")
   defaultAssigneeUserId String? @map("default_assignee_user_id") @db.Uuid
   reminderEmail    Boolean  @default(true) @map("reminder_email")
@@ -142,7 +142,7 @@ model Task {
   sortOrder       Int       @default(0) @map("sort_order")
   assignedRole    String?   @map("assigned_role")
   assignedUserId  String?   @map("assigned_user_id") @db.Uuid
-  startDate       DateTime? @map("start_date") @db.Date
+  size            String?   // small, medium, large
   dueDate         DateTime  @map("due_date") @db.Date
   completedAt     DateTime? @map("completed_at") @db.Timestamptz
   status          String    @default("not_started") // not_started, in_progress, blocked, done, skipped

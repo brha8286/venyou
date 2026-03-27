@@ -66,13 +66,13 @@ export async function PATCH(
       "assignedUserId",
       "assignedRole",
       "dueDate",
-      "startDate",
+      "size",
       "description",
       "phase",
     ];
     for (const field of allowedFields) {
       if (field in body) {
-        if (field === "dueDate" || field === "startDate") {
+        if (field === "dueDate") {
           data[field] = body[field] ? new Date(body[field]) : null;
         } else {
           data[field] = body[field];

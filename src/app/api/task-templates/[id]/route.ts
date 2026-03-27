@@ -38,7 +38,7 @@ export async function PATCH(
     "description",
     "sortOrder",
     "dueOffsetDays",
-    "startOffsetDays",
+    "size",
     "defaultRole",
     "defaultAssigneeUserId",
     "reminderEmail",

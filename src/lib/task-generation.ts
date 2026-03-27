@@ -74,10 +74,6 @@ export async function generateTasksForEvent(eventId: string) {
     if (!conditionsMatch) continue;
 
     const dueDate = addDays(event.eventDate, template.dueOffsetDays);
-    const startDate =
-      template.startOffsetDays != null
-        ? addDays(event.eventDate, template.startOffsetDays)
-        : null;
 
     // Determine assignee: explicit template assignee takes priority,
     // then role-based auto-assignment, then fall back to event manager
@@ -106,8 +102,8 @@ export async function generateTasksForEvent(eventId: string) {
         sortOrder: template.sortOrder,
         assignedRole: template.defaultRole,
         assignedUserId,
+        size: template.size,
         dueDate,
-        startDate,
         status: "not_started",
         isGenerated: true,
       },

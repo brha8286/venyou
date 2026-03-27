@@ -1260,7 +1260,7 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                                   {(() => {
                                     const m = mentionMenu[task.id];
                                     const filtered = m
-                                      ? users.filter((u) => u.name.toLowerCase().startsWith(m.query.toLowerCase())).slice(0, 6)
+                                      ? users.filter((u) => u.name.toLowerCase().includes(m.query.trim().toLowerCase())).slice(0, 6)
                                       : [];
                                     return filtered.length > 0 ? (
                                       <div className="absolute bottom-full mb-1 left-0 bg-zinc-800 border border-zinc-700 rounded-md shadow-lg z-20 min-w-40">
@@ -1287,7 +1287,7 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                                       setCommentInputs((prev) => ({ ...prev, [task.id]: val }));
                                       const cursor = e.target.selectionStart ?? val.length;
                                       const before = val.slice(0, cursor);
-                                      const atMatch = before.match(/@(\w*)$/);
+                                      const atMatch = before.match(/@([^@\n]*)$/);
                                       if (atMatch) {
                                         setMentionMenu((prev) => ({ ...prev, [task.id]: { query: atMatch[1], atIndex: cursor - atMatch[0].length } }));
                                       } else {

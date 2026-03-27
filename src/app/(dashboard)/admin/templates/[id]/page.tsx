@@ -36,7 +36,7 @@ interface TaskTemplate {
   description: string | null;
   sortOrder: number;
   dueOffsetDays: number;
-  startOffsetDays: number | null;
+  size: string | null;
   defaultRole: string | null;
   defaultAssigneeUserId: string | null;
   reminderEmail: boolean;
@@ -65,7 +65,7 @@ const emptyTaskForm = (): TaskFormData => ({
   description: "",
   sortOrder: 0,
   dueOffsetDays: 0,
-  startOffsetDays: "",
+  size: "",
   defaultRole: "",
   defaultAssigneeUserId: "",
   reminderEmail: true,
@@ -81,7 +81,7 @@ interface TaskFormData {
   description: string;
   sortOrder: number;
   dueOffsetDays: number;
-  startOffsetDays: number | string;
+  size: string;
   defaultRole: string;
   defaultAssigneeUserId: string;
   reminderEmail: boolean;
@@ -181,7 +181,7 @@ export default function TemplateEditorPage() {
       description: tt.description || "",
       sortOrder: tt.sortOrder,
       dueOffsetDays: tt.dueOffsetDays,
-      startOffsetDays: tt.startOffsetDays ?? "",
+      size: tt.size || "",
       defaultRole: tt.defaultRole || "",
       defaultAssigneeUserId: tt.defaultAssigneeUserId || "",
       reminderEmail: tt.reminderEmail,
@@ -207,10 +207,7 @@ export default function TemplateEditorPage() {
         description: editForm.description.trim() || null,
         sortOrder: editForm.sortOrder,
         dueOffsetDays: editForm.dueOffsetDays,
-        startOffsetDays:
-          editForm.startOffsetDays === ""
-            ? null
-            : Number(editForm.startOffsetDays),
+        size: editForm.size || null,
         defaultRole: editForm.defaultRole.trim() || null,
         defaultAssigneeUserId: editForm.defaultAssigneeUserId || null,
         reminderEmail: editForm.reminderEmail,
@@ -263,10 +260,7 @@ export default function TemplateEditorPage() {
         description: addForm.description.trim() || null,
         sortOrder: addForm.sortOrder,
         dueOffsetDays: addForm.dueOffsetDays,
-        startOffsetDays:
-          addForm.startOffsetDays === ""
-            ? null
-            : Number(addForm.startOffsetDays),
+        size: addForm.size || null,
         defaultRole: addForm.defaultRole.trim() || null,
         defaultAssigneeUserId: addForm.defaultAssigneeUserId || null,
         reminderEmail: addForm.reminderEmail,
@@ -390,20 +384,18 @@ export default function TemplateEditorPage() {
         </div>
         <div>
           <label className="block text-xs font-medium text-zinc-400 mb-1">
-            Start Offset (days)
+            Size
           </label>
-          <input
-            type="number"
-            value={form.startOffsetDays}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                startOffsetDays: e.target.value === "" ? "" : parseInt(e.target.value),
-              })
-            }
+          <select
+            value={form.size}
+            onChange={(e) => setForm({ ...form, size: e.target.value })}
             className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            placeholder="Optional"
-          />
+          >
+            <option value="">—</option>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
         </div>
         <div>
           <label className="block text-xs font-medium text-zinc-400 mb-1">
