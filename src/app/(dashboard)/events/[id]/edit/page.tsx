@@ -49,6 +49,7 @@ export default function EditEventPage() {
     title: "",
     eventTemplateId: "",
     eventDate: "",
+    loadInDate: "",
     startTime: "",
     endTime: "",
     venueId: "",
@@ -89,6 +90,9 @@ export default function EditEventPage() {
           eventTemplateId: event.eventTemplate?.id ?? "",
           eventDate: event.eventDate
             ? event.eventDate.slice(0, 10)
+            : "",
+          loadInDate: event.loadInDate
+            ? event.loadInDate.slice(0, 10)
             : "",
           startTime: event.startTime
             ? new Date(event.startTime).toTimeString().slice(0, 5)
@@ -146,6 +150,7 @@ export default function EditEventPage() {
       const body: Record<string, unknown> = {
         title: form.title,
         eventDate: form.eventDate,
+        loadInDate: form.loadInDate || null,
         status: form.status,
         isHomeVenue: form.isHomeVenue,
         transportRequired: form.transportRequired,
@@ -343,6 +348,28 @@ export default function EditEventPage() {
                 className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
               />
             </div>
+          </div>
+
+          {/* Load-in Date */}
+          <div>
+            <label
+              htmlFor="loadInDate"
+              className="block text-sm font-medium text-zinc-300 mb-1.5"
+            >
+              Load-in Date
+            </label>
+            <input
+              type="date"
+              id="loadInDate"
+              name="loadInDate"
+              value={form.loadInDate}
+              onChange={handleChange}
+              data-ui="event-load-in-date"
+              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              Sets the due date for the Load-in task. Defaults to the day before the event if left blank.
+            </p>
           </div>
 
           {/* Venue */}

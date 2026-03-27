@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
   const {
     title,
     eventDate,
+    loadInDate,
     eventTemplateId,
     venueId,
     clientId,
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
     data: {
       title,
       eventDate: new Date(eventDate),
+      loadInDate: loadInDate ? new Date(loadInDate) : null,
       eventTemplateId,
       venueId: venueId || null,
       clientId: clientId || null,

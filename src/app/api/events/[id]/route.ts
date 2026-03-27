@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { addDays } from "date-fns";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canCreateEvent } from "@/lib/permissions";
@@ -82,6 +83,7 @@ export async function PATCH(
     "title",
     "description",
     "eventDate",
+    "loadInDate",
     "venueId",
     "clientId",
     "status",
@@ -100,6 +102,8 @@ export async function PATCH(
         data[field] = rest[field] ? new Date(rest[field]) : null;
       } else if (field === "eventDate") {
         data[field] = new Date(rest[field]);
+      } else if (field === "loadInDate") {
+        data[field] = rest[field] ? new Date(rest[field]) : null;
       } else {
         data[field] = rest[field];
       }
@@ -119,6 +123,23 @@ export async function PATCH(
     where: { id },
     data,
   });
+
+  // If loadInDate changed, update the Load-in task's due date
+  if ("loadInDate" in data) {
+    const loadInTask = await prisma.task.findFirst({
+      where: { eventId: id, isGenerated: true, name: "Load-in" },
+    });
+    if (loadInTask) {
+      const newDueDate =
+        data.loadInDate instanceof Date
+          ? data.loadInDate
+          : addDays(event.eventDate, -1);
+      await prisma.task.update({
+        where: { id: loadInTask.id },
+        data: { dueDate: newDueDate },
+      });
+    }
+  }
 
   // If roleAssignments provided, replace existing assignments and re-assign tasks
   if (roleAssignments) {

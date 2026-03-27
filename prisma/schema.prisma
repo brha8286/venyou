@@ -110,6 +110,7 @@ model Event {
   eventTemplateId  String   @map("event_template_id") @db.Uuid
   venueId          String?  @map("venue_id") @db.Uuid
   eventDate        DateTime @map("event_date") @db.Date
+  loadInDate       DateTime? @map("load_in_date") @db.Date
   startTime        DateTime? @map("start_time") @db.Timestamptz
   endTime          DateTime? @map("end_time") @db.Timestamptz
   isHomeVenue      Boolean  @default(false) @map("is_home_venue")
