@@ -15,6 +15,26 @@ const PHASES = [
   "Post-Event",
 ];
 
+function parseOffsetDays(days: number): { offsetValue: number; offsetUnit: string; offsetDirection: string } {
+  const offsetDirection = days >= 0 ? "after" : "before";
+  const abs = Math.abs(days);
+  if (abs > 0 && abs % 30 === 0) return { offsetValue: abs / 30, offsetUnit: "months", offsetDirection };
+  if (abs > 0 && abs % 7 === 0) return { offsetValue: abs / 7, offsetUnit: "weeks", offsetDirection };
+  return { offsetValue: abs, offsetUnit: "days", offsetDirection };
+}
+
+function computeOffsetDays(value: number, unit: string, direction: string): number {
+  const mult = unit === "weeks" ? 7 : unit === "months" ? 30 : 1;
+  const days = value * mult;
+  return direction === "before" ? -days : days;
+}
+
+function formatOffset(days: number): string {
+  const { offsetValue, offsetUnit, offsetDirection } = parseOffsetDays(days);
+  if (days === 0) return "Event day";
+  return `${offsetValue} ${offsetUnit} ${offsetDirection}`;
+}
+
 const CONDITION_FIELDS = [
   { value: "is_home_venue", label: "Is Home Venue" },
   { value: "transport_required", label: "Transport Required" },
@@ -64,7 +84,9 @@ const emptyTaskForm = (): TaskFormData => ({
   name: "",
   description: "",
   sortOrder: 0,
-  dueOffsetDays: 0,
+  offsetValue: 0,
+  offsetUnit: "days",
+  offsetDirection: "before",
   size: "",
   defaultRole: "",
   defaultAssigneeUserId: "",
@@ -80,7 +102,9 @@ interface TaskFormData {
   name: string;
   description: string;
   sortOrder: number;
-  dueOffsetDays: number;
+  offsetValue: number;
+  offsetUnit: string;
+  offsetDirection: string;
   size: string;
   defaultRole: string;
   defaultAssigneeUserId: string;
@@ -180,7 +204,7 @@ export default function TemplateEditorPage() {
       name: tt.name,
       description: tt.description || "",
       sortOrder: tt.sortOrder,
-      dueOffsetDays: tt.dueOffsetDays,
+      ...parseOffsetDays(tt.dueOffsetDays),
       size: tt.size || "",
       defaultRole: tt.defaultRole || "",
       defaultAssigneeUserId: tt.defaultAssigneeUserId || "",
@@ -206,7 +230,7 @@ export default function TemplateEditorPage() {
         name: editForm.name.trim(),
         description: editForm.description.trim() || null,
         sortOrder: editForm.sortOrder,
-        dueOffsetDays: editForm.dueOffsetDays,
+        dueOffsetDays: computeOffsetDays(editForm.offsetValue, editForm.offsetUnit, editForm.offsetDirection),
         size: editForm.size || null,
         defaultRole: editForm.defaultRole.trim() || null,
         defaultAssigneeUserId: editForm.defaultAssigneeUserId || null,
@@ -259,7 +283,7 @@ export default function TemplateEditorPage() {
         name: addForm.name.trim(),
         description: addForm.description.trim() || null,
         sortOrder: addForm.sortOrder,
-        dueOffsetDays: addForm.dueOffsetDays,
+        dueOffsetDays: computeOffsetDays(addForm.offsetValue, addForm.offsetUnit, addForm.offsetDirection),
         size: addForm.size || null,
         defaultRole: addForm.defaultRole.trim() || null,
         defaultAssigneeUserId: addForm.defaultAssigneeUserId || null,
@@ -349,7 +373,41 @@ export default function TemplateEditorPage() {
         />
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div>
+        <label className="block text-xs font-medium text-zinc-400 mb-1">
+          Due Offset
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            min={0}
+            value={form.offsetValue}
+            onChange={(e) =>
+              setForm({ ...form, offsetValue: parseInt(e.target.value) || 0 })
+            }
+            className="w-20 bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          />
+          <select
+            value={form.offsetUnit}
+            onChange={(e) => setForm({ ...form, offsetUnit: e.target.value })}
+            className="flex-1 bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          >
+            <option value="days">Days</option>
+            <option value="weeks">Weeks</option>
+            <option value="months">Months</option>
+          </select>
+          <select
+            value={form.offsetDirection}
+            onChange={(e) => setForm({ ...form, offsetDirection: e.target.value })}
+            className="flex-1 bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          >
+            <option value="before">Before</option>
+            <option value="after">After</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div>
           <label className="block text-xs font-medium text-zinc-400 mb-1">
             Sort Order
@@ -362,25 +420,6 @@ export default function TemplateEditorPage() {
             }
             className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
           />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            Due Offset (days)
-          </label>
-          <input
-            type="number"
-            value={form.dueOffsetDays}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                dueOffsetDays: parseInt(e.target.value) || 0,
-              })
-            }
-            className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
-          />
-          <p className="text-[10px] text-zinc-500 mt-0.5">
-            Negative = before event
-          </p>
         </div>
         <div>
           <label className="block text-xs font-medium text-zinc-400 mb-1">
@@ -737,7 +776,7 @@ export default function TemplateEditorPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500">
-                            <span>T{tt.dueOffsetDays >= 0 ? "+" : ""}{tt.dueOffsetDays} days</span>
+                            <span>{formatOffset(tt.dueOffsetDays)}</span>
                             {tt.defaultRole && (
                               <span>Role: {tt.defaultRole}</span>
                             )}
