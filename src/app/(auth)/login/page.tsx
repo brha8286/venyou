@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { ScaLogo } from "@/components/ScaLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,6 +41,9 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Branding */}
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <ScaLogo size={64} className="rounded-full" />
+          </div>
           <h1 className="text-3xl font-bold tracking-tight text-amber-500">
             venyou
           </h1>
