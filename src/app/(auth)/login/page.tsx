@@ -48,7 +48,7 @@ export default function LoginPage() {
             venyou
           </h1>
           <p className="mt-2 text-sm text-zinc-500">
-            The Tracks ATX · event operations
+            (SCA) event operations
           </p>
         </div>
 

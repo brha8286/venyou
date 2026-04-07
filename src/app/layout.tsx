@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "venyou",
-  description: "Event operations tool for The Tracks ATX",
+  description: "Internal event operations tool for (SCA)",
   icons: {
     icon: "/favicon.svg",
   },
