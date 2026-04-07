@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { ScaLogo } from "@/components/ScaLogo";
 
 interface SidebarProps {
   user: {
@@ -97,8 +96,7 @@ export default function Sidebar({ user }: SidebarProps) {
         }`}
       >
         {/* Logo */}
-        <div data-ui="sidebar-brand" className="px-4 py-4 border-b border-zinc-800 flex items-center gap-3">
-          <ScaLogo size={36} className="rounded-full shrink-0" />
+        <div data-ui="sidebar-brand" className="px-6 py-5 border-b border-zinc-800">
           <h1 className="text-xl font-bold tracking-tight text-amber-500">
             venyou
           </h1>

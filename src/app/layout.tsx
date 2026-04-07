@@ -4,9 +4,6 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "venyou",
   description: "Internal event operations tool for (SCA)",
-  icons: {
-    icon: "/favicon.svg",
-  },
 };
 
 export default function RootLayout({
