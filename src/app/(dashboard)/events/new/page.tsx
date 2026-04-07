@@ -47,6 +47,7 @@ export default function NewEventPage() {
     title: "",
     eventTemplateId: "",
     eventDate: "",
+    loadInDate: "",
     startTime: "",
     endTime: "",
     venueId: "",
@@ -118,6 +119,7 @@ export default function NewEventPage() {
       if (form.venueId) body.venueId = form.venueId;
       if (form.clientId) body.clientId = form.clientId;
       if (form.description) body.description = form.description;
+      if (form.loadInDate) body.loadInDate = form.loadInDate;
       if (form.startTime) {
         body.startTime = new Date(`${form.eventDate}T${form.startTime}`).toISOString();
       }
@@ -284,6 +286,28 @@ export default function NewEventPage() {
                 className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
               />
             </div>
+          </div>
+
+          {/* Load-in Date */}
+          <div>
+            <label
+              htmlFor="loadInDate"
+              className="block text-sm font-medium text-zinc-300 mb-1.5"
+            >
+              Load-in Date
+            </label>
+            <input
+              type="date"
+              id="loadInDate"
+              name="loadInDate"
+              value={form.loadInDate}
+              onChange={handleChange}
+              data-ui="event-load-in-date"
+              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              Sets the due date for the Load-in task. Defaults to the day before the event if left blank.
+            </p>
           </div>
 
           {/* Venue */}

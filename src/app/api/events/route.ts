@@ -12,11 +12,19 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = request.nextUrl;
   const status = searchParams.get("status");
+  const upcoming = searchParams.get("upcoming");
 
   const where: Record<string, unknown> = {};
 
   if (status) {
     where.status = status;
+  }
+
+  if (upcoming === "true") {
+    where.eventDate = { gte: new Date() };
+    if (!status) {
+      where.status = { notIn: ["cancelled", "completed"] };
+    }
   }
 
   if (session.user.systemRole === "crew") {
@@ -54,6 +62,7 @@ export async function POST(request: NextRequest) {
   const {
     title,
     eventDate,
+    loadInDate,
     eventTemplateId,
     venueId,
     clientId,
@@ -74,11 +83,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (startTime && endTime && new Date(endTime) <= new Date(startTime)) {
+    return NextResponse.json(
+      { error: "endTime must be after startTime" },
+      { status: 400 }
+    );
+  }
+
   try {
   const event = await prisma.event.create({
     data: {
       title,
       eventDate: new Date(eventDate),
+      loadInDate: loadInDate ? new Date(loadInDate) : null,
       eventTemplateId,
       venueId: venueId || null,
       clientId: clientId || null,
@@ -115,7 +132,13 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  await generateTasksForEvent(event.id);
+  try {
+    await generateTasksForEvent(event.id);
+  } catch (genErr) {
+    // Task generation failed — delete the orphaned event so the DB stays clean
+    await prisma.event.delete({ where: { id: event.id } }).catch(() => {});
+    throw genErr;
+  }
 
   const createdEvent = await prisma.event.findUnique({
     where: { id: event.id },

@@ -15,7 +15,7 @@ interface Task {
   phase: string;
   status: TaskStatus;
   dueDate: string;
-  startDate: string | null;
+  size: string | null;
   sortOrder: number;
   eventId: string;
   assignedUserId: string | null;
