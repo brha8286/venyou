@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "venyou",
-  description: "Internal event operations tool for (SCA)",
+  description: "Event operations tool for The Tracks ATX",
 };
 
 export default function RootLayout({
