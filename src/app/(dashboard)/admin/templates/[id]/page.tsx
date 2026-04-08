@@ -491,16 +491,14 @@ export default function TemplateEditorPage() {
             />
             Email
           </label>
-          <label className="flex items-center gap-2 text-sm text-zinc-300">
+          <label className="flex items-center gap-2 text-sm text-zinc-500 cursor-not-allowed" title="SMS not yet available">
             <input
               type="checkbox"
-              checked={form.reminderSms}
-              onChange={(e) =>
-                setForm({ ...form, reminderSms: e.target.checked })
-              }
-              className="rounded bg-zinc-800 border-zinc-600 text-amber-500 focus:ring-amber-500"
+              checked={false}
+              disabled
+              className="rounded bg-zinc-800 border-zinc-600 text-amber-500 opacity-40 cursor-not-allowed"
             />
-            SMS
+            SMS <span className="text-[10px] text-zinc-600">(coming soon)</span>
           </label>
           <label className="flex items-center gap-2 text-sm text-zinc-300">
             <input
