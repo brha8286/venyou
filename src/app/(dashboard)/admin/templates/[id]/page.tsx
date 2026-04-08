@@ -55,9 +55,9 @@ interface TaskTemplate {
   phase: string;
   name: string;
   description: string | null;
-  sortOrder: number;
+
   dueOffsetDays: number;
-  size: string | null;
+
   defaultRole: string | null;
   defaultAssigneeUserId: string | null;
   reminderEmail: boolean;
@@ -84,11 +84,11 @@ const emptyTaskForm = (): TaskFormData => ({
   phase: "Production",
   name: "",
   description: "",
-  sortOrder: 0,
+
   offsetValue: 0,
   offsetUnit: "days",
   offsetDirection: "before",
-  size: "",
+
   defaultRole: "",
   defaultAssigneeUserId: "",
   reminderEmail: true,
@@ -102,11 +102,11 @@ interface TaskFormData {
   phase: string;
   name: string;
   description: string;
-  sortOrder: number;
+
   offsetValue: number;
   offsetUnit: string;
   offsetDirection: string;
-  size: string;
+
   defaultRole: string;
   defaultAssigneeUserId: string;
   reminderEmail: boolean;
@@ -204,9 +204,9 @@ export default function TemplateEditorPage() {
       phase: tt.phase,
       name: tt.name,
       description: tt.description || "",
-      sortOrder: tt.sortOrder,
+
       ...parseOffsetDays(tt.dueOffsetDays),
-      size: tt.size || "",
+
       defaultRole: tt.defaultRole || "",
       defaultAssigneeUserId: tt.defaultAssigneeUserId || "",
       reminderEmail: tt.reminderEmail,
@@ -230,9 +230,9 @@ export default function TemplateEditorPage() {
         phase: editForm.phase,
         name: editForm.name.trim(),
         description: editForm.description.trim() || null,
-        sortOrder: editForm.sortOrder,
+
         dueOffsetDays: computeOffsetDays(editForm.offsetValue, editForm.offsetUnit, editForm.offsetDirection),
-        size: editForm.size || null,
+
         defaultRole: editForm.defaultRole.trim() || null,
         defaultAssigneeUserId: editForm.defaultAssigneeUserId || null,
         reminderEmail: editForm.reminderEmail,
@@ -283,9 +283,9 @@ export default function TemplateEditorPage() {
         phase: addForm.phase,
         name: addForm.name.trim(),
         description: addForm.description.trim() || null,
-        sortOrder: addForm.sortOrder,
+
         dueOffsetDays: computeOffsetDays(addForm.offsetValue, addForm.offsetUnit, addForm.offsetDirection),
-        size: addForm.size || null,
+
         defaultRole: addForm.defaultRole.trim() || null,
         defaultAssigneeUserId: addForm.defaultAssigneeUserId || null,
         reminderEmail: addForm.reminderEmail,
@@ -408,50 +408,20 @@ export default function TemplateEditorPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            Sort Order
-          </label>
-          <input
-            type="number"
-            value={form.sortOrder}
-            onChange={(e) =>
-              setForm({ ...form, sortOrder: parseInt(e.target.value) || 0 })
-            }
-            className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            Size
-          </label>
-          <select
-            value={form.size}
-            onChange={(e) => setForm({ ...form, size: e.target.value })}
-            className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
-          >
-            <option value="">—</option>
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large">Large</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            Default Role
-          </label>
-          <select
-            value={form.defaultRole}
-            onChange={(e) => setForm({ ...form, defaultRole: e.target.value })}
-            className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
-          >
-            <option value="">—</option>
-            {EVENT_ROLES.map((r) => (
-              <option key={r.value} value={r.value}>{r.label}</option>
-            ))}
-          </select>
-        </div>
+      <div>
+        <label className="block text-xs font-medium text-zinc-400 mb-1">
+          Default Role
+        </label>
+        <select
+          value={form.defaultRole}
+          onChange={(e) => setForm({ ...form, defaultRole: e.target.value })}
+          className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
+        >
+          <option value="">—</option>
+          {EVENT_ROLES.map((r) => (
+            <option key={r.value} value={r.value}>{r.label}</option>
+          ))}
+        </select>
       </div>
 
       <div>
@@ -780,7 +750,6 @@ export default function TemplateEditorPage() {
                             {tt.defaultRole && (
                               <span>Role: {tt.defaultRole}</span>
                             )}
-                            <span>Order: {tt.sortOrder}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
