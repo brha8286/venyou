@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PhaseBadge from "@/components/PhaseBadge";
+import { EVENT_ROLES } from "@/lib/roles";
 
 const PHASES = [
   "Talent",
@@ -440,15 +441,16 @@ export default function TemplateEditorPage() {
           <label className="block text-xs font-medium text-zinc-400 mb-1">
             Default Role
           </label>
-          <input
-            type="text"
+          <select
             value={form.defaultRole}
-            onChange={(e) =>
-              setForm({ ...form, defaultRole: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, defaultRole: e.target.value })}
             className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            placeholder="e.g. sound_tech"
-          />
+          >
+            <option value="">—</option>
+            {EVENT_ROLES.map((r) => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
         </div>
       </div>
 
