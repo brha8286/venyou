@@ -59,7 +59,7 @@ interface TaskTemplate {
   dueOffsetDays: number;
 
   defaultRole: string | null;
-  defaultAssigneeUserId: string | null;
+
   reminderEmail: boolean;
   reminderSms: boolean;
   reminderDaysBefore: number;
@@ -75,10 +75,6 @@ interface Template {
   taskTemplates: TaskTemplate[];
 }
 
-interface User {
-  id: string;
-  name: string;
-}
 
 const emptyTaskForm = (): TaskFormData => ({
   phase: "Production",
@@ -90,7 +86,7 @@ const emptyTaskForm = (): TaskFormData => ({
   offsetDirection: "before",
 
   defaultRole: "",
-  defaultAssigneeUserId: "",
+
   reminderEmail: true,
   reminderSms: false,
   reminderDaysBefore: 1,
@@ -108,7 +104,7 @@ interface TaskFormData {
   offsetDirection: string;
 
   defaultRole: string;
-  defaultAssigneeUserId: string;
+
   reminderEmail: boolean;
   reminderSms: boolean;
   reminderDaysBefore: number;
@@ -122,7 +118,6 @@ export default function TemplateEditorPage() {
   const templateId = params.id as string;
 
   const [template, setTemplate] = useState<Template | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -161,10 +156,6 @@ export default function TemplateEditorPage() {
 
   useEffect(() => {
     fetchTemplate();
-    fetch("/api/users")
-      .then((r) => r.json())
-      .then(setUsers)
-      .catch(() => {});
   }, [fetchTemplate]);
 
   const clearMessages = () => {
@@ -208,7 +199,7 @@ export default function TemplateEditorPage() {
       ...parseOffsetDays(tt.dueOffsetDays),
 
       defaultRole: tt.defaultRole || "",
-      defaultAssigneeUserId: tt.defaultAssigneeUserId || "",
+
       reminderEmail: tt.reminderEmail,
       reminderSms: tt.reminderSms,
       reminderDaysBefore: tt.reminderDaysBefore,
@@ -234,7 +225,7 @@ export default function TemplateEditorPage() {
         dueOffsetDays: computeOffsetDays(editForm.offsetValue, editForm.offsetUnit, editForm.offsetDirection),
 
         defaultRole: editForm.defaultRole.trim() || null,
-        defaultAssigneeUserId: editForm.defaultAssigneeUserId || null,
+
         reminderEmail: editForm.reminderEmail,
         reminderSms: editForm.reminderSms,
         reminderDaysBefore: editForm.reminderDaysBefore,
@@ -287,7 +278,7 @@ export default function TemplateEditorPage() {
         dueOffsetDays: computeOffsetDays(addForm.offsetValue, addForm.offsetUnit, addForm.offsetDirection),
 
         defaultRole: addForm.defaultRole.trim() || null,
-        defaultAssigneeUserId: addForm.defaultAssigneeUserId || null,
+
         reminderEmail: addForm.reminderEmail,
         reminderSms: addForm.reminderSms,
         reminderDaysBefore: addForm.reminderDaysBefore,
@@ -424,25 +415,6 @@ export default function TemplateEditorPage() {
         </select>
       </div>
 
-      <div>
-        <label className="block text-xs font-medium text-zinc-400 mb-1">
-          Default Assignee
-        </label>
-        <select
-          value={form.defaultAssigneeUserId}
-          onChange={(e) =>
-            setForm({ ...form, defaultAssigneeUserId: e.target.value })
-          }
-          className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
-        >
-          <option value="">None</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name}
-            </option>
-          ))}
-        </select>
-      </div>
 
       {/* Reminder settings */}
       <div className="bg-zinc-900 rounded-md p-3 space-y-2">
