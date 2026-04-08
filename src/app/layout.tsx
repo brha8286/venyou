@@ -4,9 +4,6 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "venyou",
   description: "Event operations tool for The Tracks ATX",
-  icons: {
-    icon: "/favicon.svg",
-  },
 };
 
 export default function RootLayout({
