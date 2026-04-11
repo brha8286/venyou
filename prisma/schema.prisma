@@ -78,6 +78,7 @@ model TaskTemplate {
   reminderSms      Boolean  @default(false) @map("reminder_sms")
   reminderDaysBefore Int    @default(1) @map("reminder_days_before")
   reminderDayOf    Boolean  @default(true) @map("reminder_day_of")
+  persists         Boolean  @default(false) @map("persists")
   isActive         Boolean  @default(true) @map("is_active")
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
@@ -147,6 +148,7 @@ model Task {
   dueDate         DateTime  @map("due_date") @db.Date
   completedAt     DateTime? @map("completed_at") @db.Timestamptz
   status          String    @default("not_started") // not_started, in_progress, blocked, done, skipped
+  persists        Boolean   @default(false) @map("persists")
   isGenerated     Boolean   @default(true) @map("is_generated")
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz

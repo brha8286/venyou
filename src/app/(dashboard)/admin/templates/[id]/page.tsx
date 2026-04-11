@@ -64,6 +64,7 @@ interface TaskTemplate {
   reminderSms: boolean;
   reminderDaysBefore: number;
   reminderDayOf: boolean;
+  persists: boolean;
   conditions: Condition[];
 }
 
@@ -91,6 +92,7 @@ const emptyTaskForm = (): TaskFormData => ({
   reminderSms: false,
   reminderDaysBefore: 1,
   reminderDayOf: true,
+  persists: false,
   conditions: [],
 });
 
@@ -109,6 +111,7 @@ interface TaskFormData {
   reminderSms: boolean;
   reminderDaysBefore: number;
   reminderDayOf: boolean;
+  persists: boolean;
   conditions: Condition[];
 }
 
@@ -204,6 +207,7 @@ export default function TemplateEditorPage() {
       reminderSms: tt.reminderSms,
       reminderDaysBefore: tt.reminderDaysBefore,
       reminderDayOf: tt.reminderDayOf,
+      persists: tt.persists,
       conditions: tt.conditions.map((c) => ({
         fieldName: c.fieldName,
         operator: c.operator,
@@ -230,6 +234,7 @@ export default function TemplateEditorPage() {
         reminderSms: editForm.reminderSms,
         reminderDaysBefore: editForm.reminderDaysBefore,
         reminderDayOf: editForm.reminderDayOf,
+        persists: editForm.persists,
         conditions: editForm.conditions,
       };
 
@@ -283,6 +288,7 @@ export default function TemplateEditorPage() {
         reminderSms: addForm.reminderSms,
         reminderDaysBefore: addForm.reminderDaysBefore,
         reminderDayOf: addForm.reminderDayOf,
+        persists: addForm.persists,
         conditions: addForm.conditions,
       };
 
@@ -415,6 +421,20 @@ export default function TemplateEditorPage() {
         </select>
       </div>
 
+
+      {/* Persist flag */}
+      <div>
+        <label className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.persists}
+            onChange={(e) => setForm({ ...form, persists: e.target.checked })}
+            className="rounded bg-zinc-800 border-zinc-600 text-amber-500 focus:ring-amber-500"
+          />
+          Task persists
+          <span className="text-xs text-zinc-500">(always show on dashboard, even after event ends)</span>
+        </label>
+      </div>
 
       {/* Reminder settings */}
       <div className="bg-zinc-900 rounded-md p-3 space-y-2">

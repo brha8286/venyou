@@ -40,6 +40,7 @@ export async function POST(
     reminderSms,
     reminderDaysBefore,
     reminderDayOf,
+    persists,
     conditions,
   } = body;
 
@@ -65,6 +66,7 @@ export async function POST(
       reminderSms: reminderSms ?? false,
       reminderDaysBefore: reminderDaysBefore ?? null,
       reminderDayOf: reminderDayOf ?? false,
+      persists: persists ?? false,
       conditions: conditions?.length
         ? {
             create: conditions.map(
