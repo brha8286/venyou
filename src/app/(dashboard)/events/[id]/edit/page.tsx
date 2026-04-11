@@ -138,7 +138,17 @@ export default function EditEventPage() {
       target instanceof HTMLInputElement && target.type === "checkbox"
         ? target.checked
         : target.value;
-    setForm((prev) => ({ ...prev, [target.name]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [target.name]: value };
+      if (target.name === "venueId") {
+        const venue = venues.find((v) => v.id === value);
+        if (venue) {
+          next.isHomeVenue = venue.isHomeVenue;
+          next.transportRequired = !venue.isHomeVenue;
+        }
+      }
+      return next;
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
