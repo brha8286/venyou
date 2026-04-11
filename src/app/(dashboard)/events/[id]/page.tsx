@@ -45,6 +45,7 @@ interface EventData {
   title: string;
   description: string | null;
   eventDate: string;
+  endDate: string | null;
   startTime: string | null;
   endTime: string | null;
   status: string;
@@ -389,7 +390,12 @@ export default function EventDetailPage() {
 
     const dateParts = event.eventDate.split("T")[0].split("-").map(Number);
     const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-    const dateStr = localDate.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    let dateStr = localDate.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    if (event.endDate && event.endDate.slice(0, 10) !== event.eventDate.slice(0, 10)) {
+      const endParts = event.endDate.split("T")[0].split("-").map(Number);
+      const endLocal = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+      dateStr += " – " + endLocal.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    }
 
     let timeStr = "";
     if (event.startTime) {
@@ -629,6 +635,9 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
             <div className="flex flex-col gap-0.5 mt-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
               <span className="text-sm text-zinc-400">
                 {formatDate(event.eventDate)}
+                {event.endDate && event.endDate.slice(0, 10) !== event.eventDate.slice(0, 10) && (
+                  <> – {formatDate(event.endDate)}</>
+                )}
               </span>
               {event.startTime && (
                 <span className="text-sm text-zinc-500">

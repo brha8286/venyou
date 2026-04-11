@@ -49,6 +49,7 @@ export default function EditEventPage() {
     title: "",
     eventTemplateId: "",
     eventDate: "",
+    endDate: "",
     startTime: "",
     endTime: "",
     venueId: "",
@@ -89,6 +90,9 @@ export default function EditEventPage() {
           eventTemplateId: event.eventTemplate?.id ?? "",
           eventDate: event.eventDate
             ? event.eventDate.slice(0, 10)
+            : "",
+          endDate: event.endDate
+            ? event.endDate.slice(0, 10)
             : "",
           startTime: event.startTime
             ? new Date(event.startTime).toTimeString().slice(0, 5)
@@ -162,8 +166,10 @@ export default function EditEventPage() {
       } else {
         body.startTime = null;
       }
+      body.endDate = form.endDate || null;
       if (form.endTime) {
-        body.endTime = new Date(`${form.eventDate}T${form.endTime}`).toISOString();
+        const endDateForTime = form.endDate || form.eventDate;
+        body.endTime = new Date(`${endDateForTime}T${form.endTime}`).toISOString();
       } else {
         body.endTime = null;
       }
@@ -289,14 +295,14 @@ export default function EditEventPage() {
             </select>
           </div>
 
-          {/* Date and Times */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Dates and Times */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="eventDate"
                 className="block text-sm font-medium text-zinc-300 mb-1.5"
               >
-                Event Date *
+                Start Date *
               </label>
               <input
                 type="date"
@@ -323,6 +329,23 @@ export default function EditEventPage() {
                 value={form.startTime}
                 onChange={handleChange}
                 data-ui="event-start-time"
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="endDate"
+                className="block text-sm font-medium text-zinc-300 mb-1.5"
+              >
+                End Date
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={form.endDate}
+                onChange={handleChange}
+                data-ui="event-end-date"
                 className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
               />
             </div>

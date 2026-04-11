@@ -91,12 +91,15 @@ export async function PATCH(
     "merchPresent",
     "startTime",
     "endTime",
+    "endDate",
   ];
 
   const data: Record<string, unknown> = {};
   for (const field of allowedFields) {
     if (field in rest) {
       if (field === "startTime" || field === "endTime") {
+        data[field] = rest[field] ? new Date(rest[field]) : null;
+      } else if (field === "endDate") {
         data[field] = rest[field] ? new Date(rest[field]) : null;
       } else if (field === "eventDate") {
         data[field] = new Date(rest[field]);

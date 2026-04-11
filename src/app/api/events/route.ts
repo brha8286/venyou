@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
     merchPresent,
     startTime,
     endTime,
+    endDate,
     roleAssignments,
   } = body;
 
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest) {
       merchPresent: merchPresent ?? false,
       startTime: startTime ? new Date(startTime) : null,
       endTime: endTime ? new Date(endTime) : null,
+      endDate: endDate ? new Date(endDate) : null,
       createdByUserId: session.user.id,
     },
   });
