@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendEmail, sendSms } from "@/lib/notifications";
-import { buildDailyReminderEmail } from "@/lib/email-templates";
+import { sendEmail } from "@/lib/notifications";
+import {
+  buildDailySummaryEmail,
+  type SummaryTask,
+} from "@/lib/email-templates";
 
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
@@ -16,6 +19,17 @@ function isAuthorized(req: NextRequest): boolean {
   return false;
 }
 
+const UPCOMING_DAYS = 7;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function formatDueDate(d: Date): string {
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,23 +37,20 @@ export async function POST(req: NextRequest) {
 
   try {
     const now = new Date();
-    const tomorrowStart = new Date(now);
-    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-    tomorrowStart.setHours(0, 0, 0, 0);
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
 
-    const tomorrowEnd = new Date(tomorrowStart);
-    tomorrowEnd.setHours(23, 59, 59, 999);
+    const upcomingEnd = new Date(todayStart);
+    upcomingEnd.setDate(upcomingEnd.getDate() + UPCOMING_DAYS);
+    upcomingEnd.setHours(23, 59, 59, 999);
 
+    // Fetch everything open for any assigned user up through the upcoming window.
+    // Past-due = dueDate < todayStart; upcoming = todayStart <= dueDate <= upcomingEnd.
     const tasks = await prisma.task.findMany({
       where: {
-        dueDate: {
-          gte: tomorrowStart,
-          lte: tomorrowEnd,
-        },
-        status: {
-          notIn: ["done", "skipped"],
-        },
         assignedUserId: { not: null },
+        status: { notIn: ["done", "skipped"] },
+        dueDate: { lte: upcomingEnd },
       },
       include: {
         event: true,
@@ -48,66 +59,91 @@ export async function POST(req: NextRequest) {
       orderBy: { dueDate: "asc" },
     });
 
-    // Group by user
-    const tasksByUser: Record<string, typeof tasks> = {};
+    // Bucket per user into pastDue / upcoming.
+    type Buckets = { pastDue: SummaryTask[]; upcoming: SummaryTask[] };
+    const byUser = new Map<string, { user: (typeof tasks)[number]["assignedUser"]; buckets: Buckets }>();
+
     for (const task of tasks) {
-      if (!task.assignedUserId || !task.assignedUser) continue;
-      if (!tasksByUser[task.assignedUserId]) {
-        tasksByUser[task.assignedUserId] = [];
+      const user = task.assignedUser;
+      if (!user || !user.isActive || !user.emailEnabled) continue;
+
+      const summary: SummaryTask = {
+        name: task.name,
+        eventTitle: task.event.title,
+        dueDate: formatDueDate(task.dueDate),
+        status: task.status,
+        phase: task.phase,
+        eventId: task.eventId,
+      };
+
+      let bucket = byUser.get(user.id);
+      if (!bucket) {
+        bucket = { user, buckets: { pastDue: [], upcoming: [] } };
+        byUser.set(user.id, bucket);
       }
-      tasksByUser[task.assignedUserId].push(task);
+
+      if (task.dueDate < todayStart) {
+        summary.daysOverdue = Math.max(
+          1,
+          Math.floor((todayStart.getTime() - task.dueDate.getTime()) / MS_PER_DAY)
+        );
+        bucket.buckets.pastDue.push(summary);
+      } else {
+        bucket.buckets.upcoming.push(summary);
+      }
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://venyou.subculture.audio";
+    // Past due should sort oldest-first (most stale at the top).
+    for (const { buckets } of byUser.values()) {
+      buckets.pastDue.sort((a, b) => (b.daysOverdue ?? 0) - (a.daysOverdue ?? 0));
+    }
+
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://venyou.subculture.audio";
     let emailsSent = 0;
-    let smsSent = 0;
 
-    for (const [, userTasks] of Object.entries(tasksByUser)) {
-      const user = userTasks[0].assignedUser;
-      if (!user || !user.isActive) continue;
+    for (const { user, buckets } of byUser.values()) {
+      if (!user) continue;
 
-      const taskData = userTasks.map((t) => ({
-        name: t.name,
-        eventTitle: t.event.title,
-        dueDate: t.dueDate.toLocaleDateString("en-US", {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-        }),
-        status: t.status,
-        phase: t.phase,
-        eventId: t.eventId,
-      }));
+      const subjectParts: string[] = [];
+      if (buckets.pastDue.length > 0) {
+        subjectParts.push(`${buckets.pastDue.length} past due`);
+      }
+      if (buckets.upcoming.length > 0) {
+        subjectParts.push(`${buckets.upcoming.length} upcoming`);
+      }
+      const subject = `venyou — ${subjectParts.join(", ")}`;
 
-      // Send email
-      if (user.emailEnabled) {
-        const html = buildDailyReminderEmail(user.name, taskData, appUrl);
-        const sent = await sendEmail(
-          user.email,
-          `venyou — ${userTasks.length} task${userTasks.length === 1 ? "" : "s"} due tomorrow`,
-          `You have ${userTasks.length} task(s) due tomorrow.`,
-          html
-        );
-        if (sent) emailsSent++;
+      const textLines: string[] = [];
+      if (buckets.pastDue.length > 0) {
+        textLines.push(`Past due (${buckets.pastDue.length}):`);
+        for (const t of buckets.pastDue) {
+          textLines.push(`  • ${t.name} (${t.eventTitle}) — ${t.daysOverdue}d overdue`);
+        }
+      }
+      if (buckets.upcoming.length > 0) {
+        if (textLines.length > 0) textLines.push("");
+        textLines.push(`Upcoming (${buckets.upcoming.length}):`);
+        for (const t of buckets.upcoming) {
+          textLines.push(`  • ${t.name} (${t.eventTitle}) — ${t.dueDate}`);
+        }
       }
 
-      // Send SMS
-      if (user.smsEnabled && user.phone) {
-        const taskList = userTasks
-          .map((t) => `• ${t.name} (${t.event.title})`)
-          .join("\n");
-        const smsBody = `venyou: You have ${userTasks.length} task${userTasks.length === 1 ? "" : "s"} due TOMORROW:\n${taskList}\n${appUrl}`;
-        const sent = await sendSms(user.phone, smsBody);
-        if (sent) smsSent++;
-      }
+      const html = buildDailySummaryEmail(
+        user.name,
+        buckets.pastDue,
+        buckets.upcoming,
+        appUrl
+      );
+      const sent = await sendEmail(user.email, subject, textLines.join("\n"), html);
+      if (sent) emailsSent++;
     }
 
     return NextResponse.json({
       success: true,
       emailsSent,
-      smsSent,
+      usersNotified: byUser.size,
       totalTasks: tasks.length,
-      usersNotified: Object.keys(tasksByUser).length,
     });
   } catch (error) {
     console.error("[cron/daily-reminders] Error:", error);
