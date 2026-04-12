@@ -47,13 +47,14 @@ export default function NewEventPage() {
     title: "",
     eventTemplateId: "",
     eventDate: "",
+    endDate: "",
     loadInDate: "",
     startTime: "",
     endTime: "",
     venueId: "",
     clientId: "",
     isHomeVenue: false,
-    transportRequired: false,
+    transportRequired: true,
     coHosted: false,
     merchPresent: false,
     description: "",
@@ -96,7 +97,17 @@ export default function NewEventPage() {
       target instanceof HTMLInputElement && target.type === "checkbox"
         ? target.checked
         : target.value;
-    setForm((prev) => ({ ...prev, [target.name]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [target.name]: value };
+      if (target.name === "venueId") {
+        const venue = venues.find((v) => v.id === value);
+        if (venue) {
+          next.isHomeVenue = venue.isHomeVenue;
+          next.transportRequired = !venue.isHomeVenue;
+        }
+      }
+      return next;
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -120,11 +131,13 @@ export default function NewEventPage() {
       if (form.clientId) body.clientId = form.clientId;
       if (form.description) body.description = form.description;
       if (form.loadInDate) body.loadInDate = form.loadInDate;
+      if (form.endDate) body.endDate = form.endDate;
       if (form.startTime) {
         body.startTime = new Date(`${form.eventDate}T${form.startTime}`).toISOString();
       }
       if (form.endTime) {
-        body.endTime = new Date(`${form.eventDate}T${form.endTime}`).toISOString();
+        const endDateForTime = form.endDate || form.eventDate;
+        body.endTime = new Date(`${endDateForTime}T${form.endTime}`).toISOString();
       }
 
       const res = await fetch("/api/events", {
@@ -232,14 +245,14 @@ export default function NewEventPage() {
             </select>
           </div>
 
-          {/* Date and Times */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Dates and Times */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="eventDate"
                 className="block text-sm font-medium text-zinc-300 mb-1.5"
               >
-                Event Date *
+                Start Date *
               </label>
               <input
                 type="date"
@@ -249,6 +262,23 @@ export default function NewEventPage() {
                 value={form.eventDate}
                 onChange={handleChange}
                 data-ui="event-date-input"
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="endDate"
+                className="block text-sm font-medium text-zinc-300 mb-1.5"
+              >
+                End Date
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={form.endDate}
+                onChange={handleChange}
+                data-ui="event-end-date"
                 className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
               />
             </div>
