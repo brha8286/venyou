@@ -55,7 +55,8 @@ When an event is created with a template, `generateTasksForEvent()` (`src/lib/ta
 
 ### Notification System
 - `src/lib/notifications.ts` handles sending: Resend API (primary) → SMTP fallback for email; Twilio for SMS (optional)
-- Cron endpoints at `/api/cron/daily-reminders`, `/api/cron/day-of`, `/api/cron/notifications` process pending `TaskNotification` records
+- `/api/cron/daily-reminders` sends each active user a daily summary email with past-due tasks and the next 7 days of upcoming tasks; users with neither are skipped
+- `/api/cron/notifications` (every 15 min) drains pending `TaskNotification` records
 - Services degrade gracefully if unconfigured
 
 ### Database Schema Key Relationships
