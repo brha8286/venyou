@@ -72,7 +72,7 @@ async function main() {
 
   const venues = [
     {
-      name: 'The Tracks ATX',
+      name: 'The Tracks',
       city: 'Austin',
       state: 'TX',
       isHomeVenue: true,
