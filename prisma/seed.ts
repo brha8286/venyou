@@ -183,6 +183,11 @@ async function main() {
 
     // Strike phase
     { phase: 'strike', name: 'Strike system', dueOffsetDays: 0, defaultRole: 'event_manager', sortOrder: 60 },
+    {
+      phase: 'strike', name: 'Return gear', dueOffsetDays: 0,
+      defaultRole: 'driver', sortOrder: 61,
+      conditional: { fieldName: 'transport_required', valueText: 'true' },
+    },
   ];
 
   for (const tmpl of inHouseTaskTemplates) {
@@ -256,6 +261,11 @@ async function main() {
 
     // Strike phase
     { phase: 'strike', name: 'Strike system', dueOffsetDays: 0, defaultRole: 'event_manager', sortOrder: 60 },
+    {
+      phase: 'strike', name: 'Return gear', dueOffsetDays: 0,
+      defaultRole: 'driver', sortOrder: 61,
+      conditional: { fieldName: 'transport_required', valueText: 'true' },
+    },
   ];
 
   for (const tmpl of thirdPartyTaskTemplates) {
