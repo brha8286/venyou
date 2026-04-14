@@ -115,6 +115,7 @@ export async function generateTasksForEvent(eventId: string) {
         assignedUserId,
         size: template.size,
         dueDate,
+        persists: template.persists,
         status: "not_started",
         isGenerated: true,
       },

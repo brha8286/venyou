@@ -12,10 +12,23 @@ interface Task {
   phase: string;
   status: string;
   dueDate: string;
+  persists: boolean;
   assignedUserId: string | null;
   assignedUser: { id: string; name: string } | null;
-  event: { title: string };
+  event: { title: string; eventDate: string };
   eventId: string;
+}
+
+function isStaleOverdue(task: Task): boolean {
+  if (task.status === "done" || task.status === "skipped") return false;
+  if (task.persists) return false;
+  const today = new Date();
+  const dueDate = new Date(task.dueDate);
+  if (dueDate >= today) return false;
+  const eventDate = new Date(task.event.eventDate);
+  const cutoff = new Date(today);
+  cutoff.setDate(cutoff.getDate() - 3);
+  return eventDate < cutoff;
 }
 
 function SkeletonCard() {
@@ -80,14 +93,15 @@ export default function DashboardPage() {
         setOverdueTasks(overdue);
         setWeekTasks(week);
         setUnassignedTasks(
-          allTasks.filter((t: Task) => !t.assignedUserId && t.status !== "done" && t.status !== "skipped")
+          allTasks.filter((t: Task) => !t.assignedUserId && t.status !== "done" && t.status !== "skipped" && !isStaleOverdue(t))
         );
         setMyTasks(
           allTasks.filter(
             (t: Task) =>
               t.assignedUserId === session?.user?.id &&
               t.status !== "done" &&
-              t.status !== "skipped"
+              t.status !== "skipped" &&
+              !isStaleOverdue(t)
           )
         );
       } catch (err) {

@@ -45,6 +45,7 @@ export async function PATCH(
     "reminderSms",
     "reminderDaysBefore",
     "reminderDayOf",
+    "persists",
   ];
 
   const data: Record<string, unknown> = {};
