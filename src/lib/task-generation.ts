@@ -34,7 +34,14 @@ function evaluateConditions(
 export async function generateTasksForEvent(eventId: string) {
   const event = await prisma.event.findUniqueOrThrow({
     where: { id: eventId },
-    include: {
+    select: {
+      id: true,
+      eventDate: true,
+      loadInDate: true,
+      isHomeVenue: true,
+      transportRequired: true,
+      coHosted: true,
+      merchPresent: true,
       eventTemplate: {
         include: {
           taskTemplates: {
@@ -73,11 +80,11 @@ export async function generateTasksForEvent(eventId: string) {
 
     if (!conditionsMatch) continue;
 
-    const dueDate = addDays(event.eventDate, template.dueOffsetDays);
-    const startDate =
-      template.startOffsetDays != null
-        ? addDays(event.eventDate, template.startOffsetDays)
-        : null;
+    const isLoadIn = template.name.toLowerCase() === "load-in";
+    const dueDate =
+      isLoadIn && event.loadInDate
+        ? event.loadInDate
+        : addDays(event.eventDate, template.dueOffsetDays);
 
     // Determine assignee: explicit template assignee takes priority,
     // then role-based auto-assignment, then fall back to event manager
@@ -106,8 +113,9 @@ export async function generateTasksForEvent(eventId: string) {
         sortOrder: template.sortOrder,
         assignedRole: template.defaultRole,
         assignedUserId,
+        size: template.size,
         dueDate,
-        startDate,
+        persists: template.persists,
         status: "not_started",
         isGenerated: true,
       },
@@ -116,7 +124,7 @@ export async function generateTasksForEvent(eventId: string) {
     createdTasks.push(task);
 
     // Generate notifications for this task (use the resolved assignee)
-    await generateNotificationsForTask(task.id, template, event.eventDate, assignedUserId);
+    await generateNotificationsForTask(task.id, template, dueDate, assignedUserId);
   }
 
   return createdTasks;
@@ -129,16 +137,13 @@ async function generateNotificationsForTask(
     reminderSms: boolean;
     reminderDaysBefore: number;
     reminderDayOf: boolean;
-    dueOffsetDays: number;
     defaultAssigneeUserId: string | null;
   },
-  eventDate: Date,
+  dueDate: Date,
   resolvedAssigneeUserId: string | null = null
 ) {
   const assignedUserId = resolvedAssigneeUserId ?? template.defaultAssigneeUserId;
   if (!assignedUserId) return;
-
-  const dueDate = addDays(eventDate, template.dueOffsetDays);
   const channels: string[] = [];
   if (template.reminderEmail) channels.push("email");
   if (template.reminderSms) channels.push("sms");

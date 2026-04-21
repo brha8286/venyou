@@ -126,7 +126,7 @@ export default function EventTimeline({ eventDate, tasks, onTaskClick }: EventTi
         >
           <div className="w-px h-[calc(100%-8px)] bg-amber-500/60 absolute bottom-8" />
           <div className="absolute bottom-8 w-2 h-2 bg-amber-500 rotate-45 -translate-y-1/2" />
-          <span className="absolute bottom-0 text-[10px] font-medium text-amber-500 whitespace-nowrap">
+          <span className="absolute -bottom-3 text-[10px] font-medium text-amber-500 whitespace-nowrap">
             TODAY
           </span>
         </div>

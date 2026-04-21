@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PhaseBadge from "@/components/PhaseBadge";
+import { EVENT_ROLES } from "@/lib/roles";
 
 const PHASES = [
   "Talent",
@@ -14,6 +15,26 @@ const PHASES = [
   "Strike",
   "Post-Event",
 ];
+
+function parseOffsetDays(days: number): { offsetValue: number; offsetUnit: string; offsetDirection: string } {
+  const offsetDirection = days >= 0 ? "after" : "before";
+  const abs = Math.abs(days);
+  if (abs > 0 && abs % 30 === 0) return { offsetValue: abs / 30, offsetUnit: "months", offsetDirection };
+  if (abs > 0 && abs % 7 === 0) return { offsetValue: abs / 7, offsetUnit: "weeks", offsetDirection };
+  return { offsetValue: abs, offsetUnit: "days", offsetDirection };
+}
+
+function computeOffsetDays(value: number, unit: string, direction: string): number {
+  const mult = unit === "weeks" ? 7 : unit === "months" ? 30 : 1;
+  const days = value * mult;
+  return direction === "before" ? -days : days;
+}
+
+function formatOffset(days: number): string {
+  const { offsetValue, offsetUnit, offsetDirection } = parseOffsetDays(days);
+  if (days === 0) return "Event day";
+  return `${offsetValue} ${offsetUnit} ${offsetDirection}`;
+}
 
 const CONDITION_FIELDS = [
   { value: "is_home_venue", label: "Is Home Venue" },
@@ -34,15 +55,16 @@ interface TaskTemplate {
   phase: string;
   name: string;
   description: string | null;
-  sortOrder: number;
+
   dueOffsetDays: number;
-  startOffsetDays: number | null;
+
   defaultRole: string | null;
-  defaultAssigneeUserId: string | null;
+
   reminderEmail: boolean;
   reminderSms: boolean;
   reminderDaysBefore: number;
   reminderDayOf: boolean;
+  persists: boolean;
   conditions: Condition[];
 }
 
@@ -54,24 +76,23 @@ interface Template {
   taskTemplates: TaskTemplate[];
 }
 
-interface User {
-  id: string;
-  name: string;
-}
 
 const emptyTaskForm = (): TaskFormData => ({
   phase: "Production",
   name: "",
   description: "",
-  sortOrder: 0,
-  dueOffsetDays: 0,
-  startOffsetDays: "",
+
+  offsetValue: 0,
+  offsetUnit: "days",
+  offsetDirection: "before",
+
   defaultRole: "",
-  defaultAssigneeUserId: "",
+
   reminderEmail: true,
   reminderSms: false,
   reminderDaysBefore: 1,
   reminderDayOf: true,
+  persists: false,
   conditions: [],
 });
 
@@ -79,15 +100,18 @@ interface TaskFormData {
   phase: string;
   name: string;
   description: string;
-  sortOrder: number;
-  dueOffsetDays: number;
-  startOffsetDays: number | string;
+
+  offsetValue: number;
+  offsetUnit: string;
+  offsetDirection: string;
+
   defaultRole: string;
-  defaultAssigneeUserId: string;
+
   reminderEmail: boolean;
   reminderSms: boolean;
   reminderDaysBefore: number;
   reminderDayOf: boolean;
+  persists: boolean;
   conditions: Condition[];
 }
 
@@ -97,7 +121,6 @@ export default function TemplateEditorPage() {
   const templateId = params.id as string;
 
   const [template, setTemplate] = useState<Template | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -136,10 +159,6 @@ export default function TemplateEditorPage() {
 
   useEffect(() => {
     fetchTemplate();
-    fetch("/api/users")
-      .then((r) => r.json())
-      .then(setUsers)
-      .catch(() => {});
   }, [fetchTemplate]);
 
   const clearMessages = () => {
@@ -179,15 +198,16 @@ export default function TemplateEditorPage() {
       phase: tt.phase,
       name: tt.name,
       description: tt.description || "",
-      sortOrder: tt.sortOrder,
-      dueOffsetDays: tt.dueOffsetDays,
-      startOffsetDays: tt.startOffsetDays ?? "",
+
+      ...parseOffsetDays(tt.dueOffsetDays),
+
       defaultRole: tt.defaultRole || "",
-      defaultAssigneeUserId: tt.defaultAssigneeUserId || "",
+
       reminderEmail: tt.reminderEmail,
       reminderSms: tt.reminderSms,
       reminderDaysBefore: tt.reminderDaysBefore,
       reminderDayOf: tt.reminderDayOf,
+      persists: tt.persists,
       conditions: tt.conditions.map((c) => ({
         fieldName: c.fieldName,
         operator: c.operator,
@@ -205,18 +225,16 @@ export default function TemplateEditorPage() {
         phase: editForm.phase,
         name: editForm.name.trim(),
         description: editForm.description.trim() || null,
-        sortOrder: editForm.sortOrder,
-        dueOffsetDays: editForm.dueOffsetDays,
-        startOffsetDays:
-          editForm.startOffsetDays === ""
-            ? null
-            : Number(editForm.startOffsetDays),
+
+        dueOffsetDays: computeOffsetDays(editForm.offsetValue, editForm.offsetUnit, editForm.offsetDirection),
+
         defaultRole: editForm.defaultRole.trim() || null,
-        defaultAssigneeUserId: editForm.defaultAssigneeUserId || null,
+
         reminderEmail: editForm.reminderEmail,
         reminderSms: editForm.reminderSms,
         reminderDaysBefore: editForm.reminderDaysBefore,
         reminderDayOf: editForm.reminderDayOf,
+        persists: editForm.persists,
         conditions: editForm.conditions,
       };
 
@@ -261,18 +279,16 @@ export default function TemplateEditorPage() {
         phase: addForm.phase,
         name: addForm.name.trim(),
         description: addForm.description.trim() || null,
-        sortOrder: addForm.sortOrder,
-        dueOffsetDays: addForm.dueOffsetDays,
-        startOffsetDays:
-          addForm.startOffsetDays === ""
-            ? null
-            : Number(addForm.startOffsetDays),
+
+        dueOffsetDays: computeOffsetDays(addForm.offsetValue, addForm.offsetUnit, addForm.offsetDirection),
+
         defaultRole: addForm.defaultRole.trim() || null,
-        defaultAssigneeUserId: addForm.defaultAssigneeUserId || null,
+
         reminderEmail: addForm.reminderEmail,
         reminderSms: addForm.reminderSms,
         reminderDaysBefore: addForm.reminderDaysBefore,
         reminderDayOf: addForm.reminderDayOf,
+        persists: addForm.persists,
         conditions: addForm.conditions,
       };
 
@@ -355,90 +371,69 @@ export default function TemplateEditorPage() {
         />
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            Sort Order
-          </label>
+      <div>
+        <label className="block text-xs font-medium text-zinc-400 mb-1">
+          Due Offset
+        </label>
+        <div className="flex gap-2">
           <input
             type="number"
-            value={form.sortOrder}
+            min={0}
+            value={form.offsetValue}
             onChange={(e) =>
-              setForm({ ...form, sortOrder: parseInt(e.target.value) || 0 })
+              setForm({ ...form, offsetValue: parseInt(e.target.value) || 0 })
             }
-            className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-20 bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
           />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            Due Offset (days)
-          </label>
-          <input
-            type="number"
-            value={form.dueOffsetDays}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                dueOffsetDays: parseInt(e.target.value) || 0,
-              })
-            }
-            className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
-          />
-          <p className="text-[10px] text-zinc-500 mt-0.5">
-            Negative = before event
-          </p>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            Start Offset (days)
-          </label>
-          <input
-            type="number"
-            value={form.startOffsetDays}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                startOffsetDays: e.target.value === "" ? "" : parseInt(e.target.value),
-              })
-            }
-            className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            placeholder="Optional"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            Default Role
-          </label>
-          <input
-            type="text"
-            value={form.defaultRole}
-            onChange={(e) =>
-              setForm({ ...form, defaultRole: e.target.value })
-            }
-            className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            placeholder="e.g. sound_tech"
-          />
+          <select
+            value={form.offsetUnit}
+            onChange={(e) => setForm({ ...form, offsetUnit: e.target.value })}
+            className="flex-1 bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          >
+            <option value="days">Days</option>
+            <option value="weeks">Weeks</option>
+            <option value="months">Months</option>
+          </select>
+          <select
+            value={form.offsetDirection}
+            onChange={(e) => setForm({ ...form, offsetDirection: e.target.value })}
+            className="flex-1 bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          >
+            <option value="before">Before</option>
+            <option value="after">After</option>
+          </select>
         </div>
       </div>
 
       <div>
         <label className="block text-xs font-medium text-zinc-400 mb-1">
-          Default Assignee
+          Default Role
         </label>
         <select
-          value={form.defaultAssigneeUserId}
-          onChange={(e) =>
-            setForm({ ...form, defaultAssigneeUserId: e.target.value })
-          }
+          value={form.defaultRole}
+          onChange={(e) => setForm({ ...form, defaultRole: e.target.value })}
           className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500"
         >
-          <option value="">None</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name}
-            </option>
+          <option value="">—</option>
+          {EVENT_ROLES.map((r) => (
+            <option key={r.value} value={r.value}>{r.label}</option>
           ))}
         </select>
+      </div>
+
+
+      {/* Persist flag */}
+      <div>
+        <label className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.persists}
+            onChange={(e) => setForm({ ...form, persists: e.target.checked })}
+            className="rounded bg-zinc-800 border-zinc-600 text-amber-500 focus:ring-amber-500"
+          />
+          Task persists
+          <span className="text-xs text-zinc-500">(always show on dashboard, even after event ends)</span>
+        </label>
       </div>
 
       {/* Reminder settings */}
@@ -458,16 +453,14 @@ export default function TemplateEditorPage() {
             />
             Email
           </label>
-          <label className="flex items-center gap-2 text-sm text-zinc-300">
+          <label className="flex items-center gap-2 text-sm text-zinc-500 cursor-not-allowed" title="SMS not yet available">
             <input
               type="checkbox"
-              checked={form.reminderSms}
-              onChange={(e) =>
-                setForm({ ...form, reminderSms: e.target.checked })
-              }
-              className="rounded bg-zinc-800 border-zinc-600 text-amber-500 focus:ring-amber-500"
+              checked={false}
+              disabled
+              className="rounded bg-zinc-800 border-zinc-600 text-amber-500 opacity-40 cursor-not-allowed"
             />
-            SMS
+            SMS <span className="text-[10px] text-zinc-600">(coming soon)</span>
           </label>
           <label className="flex items-center gap-2 text-sm text-zinc-300">
             <input
@@ -745,11 +738,10 @@ export default function TemplateEditorPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500">
-                            <span>T{tt.dueOffsetDays >= 0 ? "+" : ""}{tt.dueOffsetDays} days</span>
+                            <span>{formatOffset(tt.dueOffsetDays)}</span>
                             {tt.defaultRole && (
                               <span>Role: {tt.defaultRole}</span>
                             )}
-                            <span>Order: {tt.sortOrder}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">

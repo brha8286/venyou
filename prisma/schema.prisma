@@ -71,13 +71,14 @@ model TaskTemplate {
   description      String?
   sortOrder        Int      @default(0) @map("sort_order")
   dueOffsetDays    Int      @map("due_offset_days")
-  startOffsetDays  Int?     @map("start_offset_days")
+  size             String?  // small, medium, large
   defaultRole      String?  @map("default_role")
   defaultAssigneeUserId String? @map("default_assignee_user_id") @db.Uuid
   reminderEmail    Boolean  @default(true) @map("reminder_email")
   reminderSms      Boolean  @default(false) @map("reminder_sms")
   reminderDaysBefore Int    @default(1) @map("reminder_days_before")
   reminderDayOf    Boolean  @default(true) @map("reminder_day_of")
+  persists         Boolean  @default(false) @map("persists")
   isActive         Boolean  @default(true) @map("is_active")
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
@@ -110,6 +111,8 @@ model Event {
   eventTemplateId  String   @map("event_template_id") @db.Uuid
   venueId          String?  @map("venue_id") @db.Uuid
   eventDate        DateTime @map("event_date") @db.Date
+  loadInDate       DateTime? @map("load_in_date") @db.Date
+  endDate          DateTime? @map("end_date") @db.Date
   startTime        DateTime? @map("start_time") @db.Timestamptz
   endTime          DateTime? @map("end_time") @db.Timestamptz
   isHomeVenue      Boolean  @default(false) @map("is_home_venue")
@@ -119,6 +122,11 @@ model Event {
   createdByUserId  String   @map("created_by_user_id") @db.Uuid
   clientId         String?  @map("client_id") @db.Uuid
   status           String   @default("planning") // planning, active, completed, cancelled
+  isPublic         Boolean  @default(false) @map("is_public")
+  publicTitle      String?  @map("public_title")
+  publicDescription String? @map("public_description")
+  ticketUrl        String?  @map("ticket_url")
+  flyerUrl         String?  @map("flyer_url")
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -142,10 +150,11 @@ model Task {
   sortOrder       Int       @default(0) @map("sort_order")
   assignedRole    String?   @map("assigned_role")
   assignedUserId  String?   @map("assigned_user_id") @db.Uuid
-  startDate       DateTime? @map("start_date") @db.Date
+  size            String?   // small, medium, large
   dueDate         DateTime  @map("due_date") @db.Date
   completedAt     DateTime? @map("completed_at") @db.Timestamptz
   status          String    @default("not_started") // not_started, in_progress, blocked, done, skipped
+  persists        Boolean   @default(false) @map("persists")
   isGenerated     Boolean   @default(true) @map("is_generated")
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
@@ -203,6 +212,21 @@ model Contact {
   events Event[]
 
   @@map("contacts")
+}
+
+model GalleryImage {
+  id         String   @id @default(uuid()) @db.Uuid
+  url        String
+  key        String   @unique
+  alt        String?
+  caption    String?
+  sortOrder  Int      @default(0) @map("sort_order")
+  isPublic   Boolean  @default(true) @map("is_public")
+  width      Int?
+  height     Int?
+  uploadedAt DateTime @default(now()) @map("uploaded_at") @db.Timestamptz
+
+  @@map("gallery_images")
 }
 
 model EventAssignment {

@@ -152,7 +152,7 @@ export async function sendSms(to: string, body: string): Promise<boolean> {
   }
 }
 
-export async function sendPendingNotifications() {
+export async function sendPendingNotifications(): Promise<number> {
   const now = new Date();
 
   const pendingNotifications = await prisma.taskNotification.findMany({
@@ -216,4 +216,6 @@ export async function sendPendingNotifications() {
       },
     });
   }
+
+  return pendingNotifications.length;
 }

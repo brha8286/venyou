@@ -49,6 +49,8 @@ export default function EditEventPage() {
     title: "",
     eventTemplateId: "",
     eventDate: "",
+    endDate: "",
+    loadInDate: "",
     startTime: "",
     endTime: "",
     venueId: "",
@@ -59,6 +61,11 @@ export default function EditEventPage() {
     merchPresent: false,
     description: "",
     status: "planning",
+    isPublic: false,
+    publicTitle: "",
+    publicDescription: "",
+    ticketUrl: "",
+    flyerUrl: "",
   });
 
   useEffect(() => {
@@ -90,6 +97,12 @@ export default function EditEventPage() {
           eventDate: event.eventDate
             ? event.eventDate.slice(0, 10)
             : "",
+          endDate: event.endDate
+            ? event.endDate.slice(0, 10)
+            : "",
+          loadInDate: event.loadInDate
+            ? event.loadInDate.slice(0, 10)
+            : "",
           startTime: event.startTime
             ? new Date(event.startTime).toTimeString().slice(0, 5)
             : "",
@@ -104,6 +117,11 @@ export default function EditEventPage() {
           merchPresent: event.merchPresent ?? false,
           description: event.description ?? "",
           status: event.status ?? "planning",
+          isPublic: event.isPublic ?? false,
+          publicTitle: event.publicTitle ?? "",
+          publicDescription: event.publicDescription ?? "",
+          ticketUrl: event.ticketUrl ?? "",
+          flyerUrl: event.flyerUrl ?? "",
         });
 
         // Pre-populate role assignments
@@ -134,7 +152,17 @@ export default function EditEventPage() {
       target instanceof HTMLInputElement && target.type === "checkbox"
         ? target.checked
         : target.value;
-    setForm((prev) => ({ ...prev, [target.name]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [target.name]: value };
+      if (target.name === "venueId") {
+        const venue = venues.find((v) => v.id === value);
+        if (venue) {
+          next.isHomeVenue = venue.isHomeVenue;
+          next.transportRequired = !venue.isHomeVenue;
+        }
+      }
+      return next;
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -146,6 +174,8 @@ export default function EditEventPage() {
       const body: Record<string, unknown> = {
         title: form.title,
         eventDate: form.eventDate,
+        endDate: form.endDate || null,
+        loadInDate: form.loadInDate || null,
         status: form.status,
         isHomeVenue: form.isHomeVenue,
         transportRequired: form.transportRequired,
@@ -154,6 +184,11 @@ export default function EditEventPage() {
         description: form.description || null,
         venueId: form.venueId || null,
         clientId: form.clientId || null,
+        isPublic: form.isPublic,
+        publicTitle: form.publicTitle || null,
+        publicDescription: form.publicDescription || null,
+        ticketUrl: form.ticketUrl || null,
+        flyerUrl: form.flyerUrl || null,
         roleAssignments: roleAssignments.filter((ra) => ra.userId),
       };
 
@@ -163,7 +198,8 @@ export default function EditEventPage() {
         body.startTime = null;
       }
       if (form.endTime) {
-        body.endTime = new Date(`${form.eventDate}T${form.endTime}`).toISOString();
+        const endDateForTime = form.endDate || form.eventDate;
+        body.endTime = new Date(`${endDateForTime}T${form.endTime}`).toISOString();
       } else {
         body.endTime = null;
       }
@@ -289,14 +325,14 @@ export default function EditEventPage() {
             </select>
           </div>
 
-          {/* Date and Times */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Dates and Times */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="eventDate"
                 className="block text-sm font-medium text-zinc-300 mb-1.5"
               >
-                Event Date *
+                Start Date *
               </label>
               <input
                 type="date"
@@ -306,6 +342,23 @@ export default function EditEventPage() {
                 value={form.eventDate}
                 onChange={handleChange}
                 data-ui="event-date-input"
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="endDate"
+                className="block text-sm font-medium text-zinc-300 mb-1.5"
+              >
+                End Date
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={form.endDate}
+                onChange={handleChange}
+                data-ui="event-end-date"
                 className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
               />
             </div>
@@ -343,6 +396,28 @@ export default function EditEventPage() {
                 className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
               />
             </div>
+          </div>
+
+          {/* Load-in Date */}
+          <div>
+            <label
+              htmlFor="loadInDate"
+              className="block text-sm font-medium text-zinc-300 mb-1.5"
+            >
+              Load-in Date
+            </label>
+            <input
+              type="date"
+              id="loadInDate"
+              name="loadInDate"
+              value={form.loadInDate}
+              onChange={handleChange}
+              data-ui="event-load-in-date"
+              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              Sets the due date for the Load-in task. Defaults to the day before the event if left blank.
+            </p>
           </div>
 
           {/* Venue */}
@@ -496,6 +571,113 @@ export default function EditEventPage() {
               className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 resize-vertical"
               placeholder="Any additional notes for this event..."
             />
+          </div>
+          {/* Website */}
+          <div data-ui="website-section" className="pt-2">
+            <h3 className="text-sm font-semibold text-zinc-100 mb-3">
+              Website
+            </h3>
+            <div className="space-y-4">
+              <label className="flex items-center gap-2.5 p-3 bg-zinc-900/50 rounded-md border border-zinc-700/50 cursor-pointer hover:bg-zinc-900 transition-colors">
+                <input
+                  type="checkbox"
+                  name="isPublic"
+                  checked={form.isPublic as boolean}
+                  onChange={handleChange}
+                  data-ui="flag-is-public"
+                  className="w-4 h-4 rounded border-zinc-600 bg-zinc-900 text-amber-500 focus:ring-amber-500/50 focus:ring-offset-0"
+                />
+                <span className="text-sm text-zinc-300">
+                  Show on website
+                </span>
+              </label>
+
+              {form.isPublic && (
+                <div className="space-y-4 pl-1">
+                  <div>
+                    <label
+                      htmlFor="publicTitle"
+                      className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    >
+                      Public title
+                    </label>
+                    <input
+                      type="text"
+                      id="publicTitle"
+                      name="publicTitle"
+                      value={form.publicTitle}
+                      onChange={handleChange}
+                      placeholder={form.title || "Same as event title"}
+                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+                    />
+                    <p className="text-xs text-zinc-500 mt-1">
+                      Leave blank to use the event title above
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="publicDescription"
+                      className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    >
+                      Public description
+                    </label>
+                    <textarea
+                      id="publicDescription"
+                      name="publicDescription"
+                      rows={3}
+                      value={form.publicDescription}
+                      onChange={handleChange}
+                      placeholder="What should people see on the website?"
+                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 resize-vertical"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="ticketUrl"
+                      className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    >
+                      Ticket link
+                    </label>
+                    <input
+                      type="url"
+                      id="ticketUrl"
+                      name="ticketUrl"
+                      value={form.ticketUrl}
+                      onChange={handleChange}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="flyerUrl"
+                      className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    >
+                      Flyer image URL
+                    </label>
+                    <input
+                      type="url"
+                      id="flyerUrl"
+                      name="flyerUrl"
+                      value={form.flyerUrl}
+                      onChange={handleChange}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+                    />
+                    {form.flyerUrl && (
+                      <img
+                        src={form.flyerUrl as string}
+                        alt="Flyer preview"
+                        className="mt-2 max-h-40 rounded-md border border-zinc-700"
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

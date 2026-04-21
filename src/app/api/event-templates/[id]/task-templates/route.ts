@@ -33,19 +33,20 @@ export async function POST(
     description,
     sortOrder,
     dueOffsetDays,
-    startOffsetDays,
+    size,
     defaultRole,
     defaultAssigneeUserId,
     reminderEmail,
     reminderSms,
     reminderDaysBefore,
     reminderDayOf,
+    persists,
     conditions,
   } = body;
 
-  if (!phase || !name) {
+  if (!phase || !name || dueOffsetDays === undefined || dueOffsetDays === null) {
     return NextResponse.json(
-      { error: "phase and name are required" },
+      { error: "phase, name, and dueOffsetDays are required" },
       { status: 400 }
     );
   }
@@ -58,13 +59,14 @@ export async function POST(
       description: description || null,
       sortOrder: sortOrder ?? 0,
       dueOffsetDays: dueOffsetDays ?? 0,
-      startOffsetDays: startOffsetDays ?? null,
+      size: size || null,
       defaultRole: defaultRole || null,
       defaultAssigneeUserId: defaultAssigneeUserId || null,
       reminderEmail: reminderEmail ?? false,
       reminderSms: reminderSms ?? false,
       reminderDaysBefore: reminderDaysBefore ?? null,
       reminderDayOf: reminderDayOf ?? false,
+      persists: persists ?? false,
       conditions: conditions?.length
         ? {
             create: conditions.map(

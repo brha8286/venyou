@@ -45,6 +45,7 @@ interface EventData {
   title: string;
   description: string | null;
   eventDate: string;
+  endDate: string | null;
   startTime: string | null;
   endTime: string | null;
   status: string;
@@ -389,7 +390,12 @@ export default function EventDetailPage() {
 
     const dateParts = event.eventDate.split("T")[0].split("-").map(Number);
     const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-    const dateStr = localDate.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    let dateStr = localDate.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    if (event.endDate && event.endDate.slice(0, 10) !== event.eventDate.slice(0, 10)) {
+      const endParts = event.endDate.split("T")[0].split("-").map(Number);
+      const endLocal = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+      dateStr += " – " + endLocal.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    }
 
     let timeStr = "";
     if (event.startTime) {
@@ -629,6 +635,9 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
             <div className="flex flex-col gap-0.5 mt-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
               <span className="text-sm text-zinc-400">
                 {formatDate(event.eventDate)}
+                {event.endDate && event.endDate.slice(0, 10) !== event.eventDate.slice(0, 10) && (
+                  <> – {formatDate(event.endDate)}</>
+                )}
               </span>
               {event.startTime && (
                 <span className="text-sm text-zinc-500">
@@ -1260,7 +1269,7 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                                   {(() => {
                                     const m = mentionMenu[task.id];
                                     const filtered = m
-                                      ? users.filter((u) => u.name.toLowerCase().startsWith(m.query.toLowerCase())).slice(0, 6)
+                                      ? users.filter((u) => u.name.toLowerCase().includes(m.query.trim().toLowerCase())).slice(0, 6)
                                       : [];
                                     return filtered.length > 0 ? (
                                       <div className="absolute bottom-full mb-1 left-0 bg-zinc-800 border border-zinc-700 rounded-md shadow-lg z-20 min-w-40">
@@ -1287,7 +1296,7 @@ ${Object.entries(tasksByPhase).map(([phase, tasks]) => `
                                       setCommentInputs((prev) => ({ ...prev, [task.id]: val }));
                                       const cursor = e.target.selectionStart ?? val.length;
                                       const before = val.slice(0, cursor);
-                                      const atMatch = before.match(/@(\w*)$/);
+                                      const atMatch = before.match(/@([^@\n]*)$/);
                                       if (atMatch) {
                                         setMentionMenu((prev) => ({ ...prev, [task.id]: { query: atMatch[1], atIndex: cursor - atMatch[0].length } }));
                                       } else {

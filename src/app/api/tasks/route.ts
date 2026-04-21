@@ -22,8 +22,15 @@ export async function GET(request: NextRequest) {
   if (status) where.status = status;
 
   if (overdue === "true") {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 3);
     where.dueDate = { lt: new Date() };
     where.status = { not: "done" };
+    // Hide tasks from events that ended more than 3 days ago, unless the task persists
+    where.OR = [
+      { persists: true },
+      { event: { eventDate: { gte: cutoff } } },
+    ];
   }
 
   if (upcoming) {
@@ -48,7 +55,7 @@ export async function GET(request: NextRequest) {
     where,
     include: {
       event: {
-        select: { title: true },
+        select: { title: true, eventDate: true },
       },
       assignedUser: {
         select: { id: true, name: true },

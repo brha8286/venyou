@@ -38,13 +38,14 @@ export async function PATCH(
     "description",
     "sortOrder",
     "dueOffsetDays",
-    "startOffsetDays",
+    "size",
     "defaultRole",
     "defaultAssigneeUserId",
     "reminderEmail",
     "reminderSms",
     "reminderDaysBefore",
     "reminderDayOf",
+    "persists",
   ];
 
   const data: Record<string, unknown> = {};
