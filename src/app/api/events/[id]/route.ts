@@ -94,6 +94,11 @@ export async function PATCH(
     "startTime",
     "endTime",
     "endDate",
+    "isPublic",
+    "publicTitle",
+    "publicDescription",
+    "ticketUrl",
+    "flyerUrl",
   ];
 
   const data: Record<string, unknown> = {};

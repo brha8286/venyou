@@ -121,6 +121,11 @@ model Event {
   createdByUserId  String   @map("created_by_user_id") @db.Uuid
   clientId         String?  @map("client_id") @db.Uuid
   status           String   @default("planning") // planning, active, completed, cancelled
+  isPublic         Boolean  @default(false) @map("is_public")
+  publicTitle      String?  @map("public_title")
+  publicDescription String? @map("public_description")
+  ticketUrl        String?  @map("ticket_url")
+  flyerUrl         String?  @map("flyer_url")
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -205,6 +210,21 @@ model Contact {
   events Event[]
 
   @@map("contacts")
+}
+
+model GalleryImage {
+  id         String   @id @default(uuid()) @db.Uuid
+  url        String
+  key        String   @unique
+  alt        String?
+  caption    String?
+  sortOrder  Int      @default(0) @map("sort_order")
+  isPublic   Boolean  @default(true) @map("is_public")
+  width      Int?
+  height     Int?
+  uploadedAt DateTime @default(now()) @map("uploaded_at") @db.Timestamptz
+
+  @@map("gallery_images")
 }
 
 model EventAssignment {

@@ -61,6 +61,11 @@ export default function EditEventPage() {
     merchPresent: false,
     description: "",
     status: "planning",
+    isPublic: false,
+    publicTitle: "",
+    publicDescription: "",
+    ticketUrl: "",
+    flyerUrl: "",
   });
 
   useEffect(() => {
@@ -112,6 +117,11 @@ export default function EditEventPage() {
           merchPresent: event.merchPresent ?? false,
           description: event.description ?? "",
           status: event.status ?? "planning",
+          isPublic: event.isPublic ?? false,
+          publicTitle: event.publicTitle ?? "",
+          publicDescription: event.publicDescription ?? "",
+          ticketUrl: event.ticketUrl ?? "",
+          flyerUrl: event.flyerUrl ?? "",
         });
 
         // Pre-populate role assignments
@@ -174,6 +184,11 @@ export default function EditEventPage() {
         description: form.description || null,
         venueId: form.venueId || null,
         clientId: form.clientId || null,
+        isPublic: form.isPublic,
+        publicTitle: form.publicTitle || null,
+        publicDescription: form.publicDescription || null,
+        ticketUrl: form.ticketUrl || null,
+        flyerUrl: form.flyerUrl || null,
         roleAssignments: roleAssignments.filter((ra) => ra.userId),
       };
 
@@ -556,6 +571,113 @@ export default function EditEventPage() {
               className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 resize-vertical"
               placeholder="Any additional notes for this event..."
             />
+          </div>
+          {/* Website */}
+          <div data-ui="website-section" className="pt-2">
+            <h3 className="text-sm font-semibold text-zinc-100 mb-3">
+              Website
+            </h3>
+            <div className="space-y-4">
+              <label className="flex items-center gap-2.5 p-3 bg-zinc-900/50 rounded-md border border-zinc-700/50 cursor-pointer hover:bg-zinc-900 transition-colors">
+                <input
+                  type="checkbox"
+                  name="isPublic"
+                  checked={form.isPublic as boolean}
+                  onChange={handleChange}
+                  data-ui="flag-is-public"
+                  className="w-4 h-4 rounded border-zinc-600 bg-zinc-900 text-amber-500 focus:ring-amber-500/50 focus:ring-offset-0"
+                />
+                <span className="text-sm text-zinc-300">
+                  Show on website
+                </span>
+              </label>
+
+              {form.isPublic && (
+                <div className="space-y-4 pl-1">
+                  <div>
+                    <label
+                      htmlFor="publicTitle"
+                      className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    >
+                      Public title
+                    </label>
+                    <input
+                      type="text"
+                      id="publicTitle"
+                      name="publicTitle"
+                      value={form.publicTitle}
+                      onChange={handleChange}
+                      placeholder={form.title || "Same as event title"}
+                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+                    />
+                    <p className="text-xs text-zinc-500 mt-1">
+                      Leave blank to use the event title above
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="publicDescription"
+                      className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    >
+                      Public description
+                    </label>
+                    <textarea
+                      id="publicDescription"
+                      name="publicDescription"
+                      rows={3}
+                      value={form.publicDescription}
+                      onChange={handleChange}
+                      placeholder="What should people see on the website?"
+                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 resize-vertical"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="ticketUrl"
+                      className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    >
+                      Ticket link
+                    </label>
+                    <input
+                      type="url"
+                      id="ticketUrl"
+                      name="ticketUrl"
+                      value={form.ticketUrl}
+                      onChange={handleChange}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="flyerUrl"
+                      className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    >
+                      Flyer image URL
+                    </label>
+                    <input
+                      type="url"
+                      id="flyerUrl"
+                      name="flyerUrl"
+                      value={form.flyerUrl}
+                      onChange={handleChange}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+                    />
+                    {form.flyerUrl && (
+                      <img
+                        src={form.flyerUrl as string}
+                        alt="Flyer preview"
+                        className="mt-2 max-h-40 rounded-md border border-zinc-700"
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
