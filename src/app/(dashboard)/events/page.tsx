@@ -93,9 +93,18 @@ export default function EventsPage() {
     fetchEvents();
   }, []);
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  function isPastCompleted(e: Event) {
+    if (e.status !== "completed") return false;
+    const [y, m, d] = e.eventDate.split("T")[0].split("-").map(Number);
+    return new Date(y, m - 1, d) < today;
+  }
+
   const filteredEvents =
     activeTab === "all"
-      ? events
+      ? events.filter((e) => !isPastCompleted(e))
       : events.filter((e) => e.status === activeTab);
 
   return (
@@ -116,7 +125,7 @@ export default function EventsPage() {
         {STATUS_TABS.map((tab) => {
           const count =
             tab.value === "all"
-              ? events.length
+              ? events.filter((e) => !isPastCompleted(e)).length
               : events.filter((e) => e.status === tab.value).length;
           return (
             <button
