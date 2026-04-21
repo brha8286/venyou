@@ -118,7 +118,8 @@ export async function PATCH(
 
   const startTime = data.startTime ?? existing.startTime;
   const endTime = data.endTime ?? existing.endTime;
-  if (startTime && endTime && (endTime as Date) <= (startTime as Date)) {
+  const timesBeingUpdated = "startTime" in data || "endTime" in data;
+  if (timesBeingUpdated && startTime && endTime && (endTime as Date) <= (startTime as Date)) {
     return NextResponse.json(
       { error: "endTime must be after startTime" },
       { status: 400 }
