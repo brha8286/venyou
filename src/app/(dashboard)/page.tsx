@@ -54,7 +54,8 @@ function CountBadge({ count }: { count: number }) {
 
 function formatDate(dateStr: string) {
   try {
-    return format(parseISO(dateStr), "MMM d, yyyy");
+    const [y, m, d] = dateStr.split("T")[0].split("-").map(Number);
+    return format(new Date(y, m - 1, d), "MMM d, yyyy");
   } catch {
     return dateStr;
   }
