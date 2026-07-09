@@ -21,6 +21,8 @@ function isAuthorized(req: NextRequest): boolean {
 
 const UPCOMING_DAYS = 7;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+// Match the dashboard's overdue grace window (see api/tasks/route.ts).
+const EVENT_STALE_GRACE_DAYS = 3;
 
 function formatDueDate(d: Date): string {
   return d.toLocaleDateString("en-US", {
@@ -67,6 +69,25 @@ export async function POST(req: NextRequest) {
       const user = task.assignedUser;
       if (!user || !user.isActive || !user.emailEnabled) continue;
 
+      const event = task.event;
+
+      // Once an event is wrapped up or dead, stop reminding about it entirely.
+      if (event.status === "completed" || event.status === "cancelled") continue;
+
+      const isPastDue = task.dueDate < todayStart;
+
+      // Mirror the dashboard's overdue rule (see api/tasks): once an event
+      // ended more than the grace window ago, stop nagging about its stale
+      // tasks — nobody needs a "day-of post" reminder 100 days later. Tasks
+      // flagged `persists` (e.g. post-event recap posts) are exempt and keep
+      // reminding until they're marked done.
+      if (isPastDue && !task.persists) {
+        const cutoff = new Date(todayStart);
+        cutoff.setDate(cutoff.getDate() - EVENT_STALE_GRACE_DAYS);
+        const eventEnd = event.endDate ?? event.eventDate;
+        if (eventEnd < cutoff) continue;
+      }
+
       const summary: SummaryTask = {
         name: task.name,
         eventTitle: task.event.title,
@@ -82,7 +103,7 @@ export async function POST(req: NextRequest) {
         byUser.set(user.id, bucket);
       }
 
-      if (task.dueDate < todayStart) {
+      if (isPastDue) {
         summary.daysOverdue = Math.max(
           1,
           Math.floor((todayStart.getTime() - task.dueDate.getTime()) / MS_PER_DAY)
